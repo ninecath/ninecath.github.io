@@ -1,9 +1,38 @@
 document.addEventListener("DOMContentLoaded", () => { // IIFE to avoid globals
+  
+  // To move a item position to another
+  const moveFocus = (direction, column, row) => {
 
-  const moveFocus = direction => {
+    const isInfinite = localStorage['infiniteMoving'],
+          blockHeight = localStorage['blockHeight'] - 1,
+          blockWidth = localStorage['blockWidth'] - 1
 
-    console.log(direction)
+    switch (direction) {
+
+      case 'up':
+        if (row-- === 0 && isInfinite === 'true') row = blockHeight;
+        else if (row === -1) row = 0;
+        break;
+
+      case 'down':
+        if (row++ === blockHeight && isInfinite === 'true') row = 0;
+        else if (row === blockHeight + 1) row = blockHeight;
+        break;
+
+      case 'right':
+        if (column++ === blockWidth && isInfinite === 'true') column = 0;
+        else if (column === blockWidth + 1) column = blockWidth;
+        break;
+
+      case 'left':
+        if (column-- === 0 && isInfinite === 'true') column = blockWidth;
+        else if (column === -1) column = 0;
+        break;
+
+    }
     
+      document.getElementsByClassName('column')[column].children[row].focus();
+
   }
   
    fetch('./data/config.json')
@@ -15,40 +44,51 @@ document.addEventListener("DOMContentLoaded", () => { // IIFE to avoid globals
 
     // Our container for the blocks and columns
     const block = document.getElementById('block')
+
+    // config.json Constants
+    localStorage['infiniteMoving'] = json['infinite-moving']
+    localStorage['blockHeight']    = json['default-height']
+    localStorage['blockWidth']     = json['default-width']
     
     // Add columns
-    for (let i = 0; i < json['default-height']; i++) {
+    for (let i = 0; i < localStorage['blockHeight']; i++) {
 
       block.insertAdjacentHTML( 'beforeend', `<div data-column="${i}" class="column"></div>`)
       const column = document.getElementsByClassName('column')[i]
 
       // Add column items
-      for (let j = 0; j < json['default-width']; j++) {
+      for (let j = 0; j < localStorage['blockWidth']; j++) {
 
         column.insertAdjacentHTML( 'beforeend', `<input type="text" maxlength="1" data-column-item="${j}" class="column-item">` )
         // Add movement event
         const item = document.getElementsByClassName('column')[i].children[j]
+        // Set old value from localStorage
+        if (localStorage[`item-${i}-${j}`]) item.value = localStorage[`item-${i}-${j}`];
         item.addEventListener('keydown', e => {
 
           switch (e.code) {
 
             case 'ArrowUp':
-              moveFocus('up')
+              moveFocus('up', i, j)
               break;
             case 'ArrowDown':
-              moveFocus('down')
+              moveFocus('down', i, j)
               break;
             case 'ArrowRight':
-              moveFocus('right')
+              moveFocus('right', i, j)
               break;
             case 'ArrowLeft':
-              moveFocus('left')
+              moveFocus('left', i, j)
               break;
             case 'Backspace':
-              item.value = ' '
+              item.value = ''
+              localStorage[`item-${i}-${j}`] = ''
               break;
             default:
-              if (e.key.length === 1) item.value = e.key;
+              if (e.key.length === 1) {
+                item.value = e.key
+                localStorage[`item-${i}-${j}`] = e.key
+              }
           }
 
         });
