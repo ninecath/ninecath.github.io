@@ -2,6 +2,7 @@
   "default-width": 15,
   "default-height": 15,
   "infinite-moving": true,
+  "move-after-input": false,
   "title-icons": [
     ":)",
     "=)",
