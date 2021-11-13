@@ -54,6 +54,14 @@ document.addEventListener("DOMContentLoaded", () => { // IIFE to avoid globals
         else if (column === -1) column = 0;
         break;
 
+      case 'next':
+        if (column++ === blockWidth && isInfinite === 'true') {
+          column = 0;
+          row++;
+        }
+        else if (column === blockWidth + 1)  column = blockWidth;
+        if      (row    === blockHeight + 1) row    = 0;
+
     }
     
       document.getElementsByClassName('column')[column].children[row].focus();
@@ -74,6 +82,7 @@ document.addEventListener("DOMContentLoaded", () => { // IIFE to avoid globals
     localStorage['infiniteMoving'] = json['infinite-moving']
     localStorage['blockHeight']    = json['default-height']
     localStorage['blockWidth']     = json['default-width']
+    localStorage['moveAfterInput'] = json['move-after-input']
     
     // Add columns
     for (let i = 0; i < localStorage['blockHeight']; i++) {
@@ -113,8 +122,9 @@ document.addEventListener("DOMContentLoaded", () => { // IIFE to avoid globals
             default:
               if (e.key.length === 1) {
                 item.value = e.key
-                updateTerminalOutput(block)
                 localStorage[`item-${i}-${j}`] = e.key
+                updateTerminalOutput(block)
+                if (localStorage['moveAfterInput'] === 'true') moveFocus('next', i, j);
               }
           }
 
