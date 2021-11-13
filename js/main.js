@@ -1,5 +1,30 @@
 document.addEventListener("DOMContentLoaded", () => { // IIFE to avoid globals
   
+  // To update the terminal output 
+  updateTerminalOutput = block => {
+
+    const output = document.getElementById('output')
+    output.value = ''
+
+    for (let i = 0; i < localStorage['blockWidth']; i++) {
+      
+      for (let j = 0; j < localStorage['blockHeight']; j++) {
+
+        const item = block.children[j].children[i]
+        
+        // Add its value
+        if (item.value) output.value += item.value;
+        else output.value += ' ';
+
+        // Add line break at the end of the row
+        if (j === localStorage['blockHeight'] - 1) output.value += '\r\n'
+
+      }
+      
+    }
+
+  }
+  
   // To move a item position to another
   const moveFocus = (direction, column, row) => {
 
@@ -82,11 +107,13 @@ document.addEventListener("DOMContentLoaded", () => { // IIFE to avoid globals
               break;
             case 'Backspace':
               item.value = ''
+              updateTerminalOutput(block)
               localStorage[`item-${i}-${j}`] = ''
               break;
             default:
               if (e.key.length === 1) {
                 item.value = e.key
+                updateTerminalOutput(block)
                 localStorage[`item-${i}-${j}`] = e.key
               }
           }
@@ -96,6 +123,8 @@ document.addEventListener("DOMContentLoaded", () => { // IIFE to avoid globals
       }
 
     }
+
+    updateTerminalOutput(block)
 
   }) 
 
