@@ -28,9 +28,9 @@ document.addEventListener("DOMContentLoaded", () => { // IIFE to avoid globals
   // To move a item position to another
   const moveFocus = (direction, column, row) => {
 
-    const isInfinite = localStorage['infiniteMoving'],
+    const isInfinite  = localStorage['infiniteMoving'],
           blockHeight = localStorage['blockHeight'] - 1,
-          blockWidth = localStorage['blockWidth'] - 1
+          blockWidth  = localStorage['blockWidth'] - 1
 
     switch (direction) {
 
