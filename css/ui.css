@@ -20,4 +20,8 @@
 
   text-align: center;
 
+} #block .column-item.selected {
+
+  background-color: red;
+
 }

@@ -1,17 +1,30 @@
-document.addEventListener("DOMContentLoaded", () => { // IIFE to avoid globals
-  
-  // To update the terminal output 
-  updateTerminalOutput = block => {
+import { r, g, c, s, x } from "./xeact.js";
 
-    const output = document.getElementById('output')
+/*
+ * Mouse events initialize
+ */
+
+let button_down = 0;
+
+/*
+ * Start everything
+ **/
+
+
+r( () => { // IIFE to avoid globals
+  
+  // To update the terminal output
+  const updateTerminalOutput = block => {
+
+    const output = g('output')
     output.value = ''
 
     for (let i = 0; i < localStorage['blockWidth']; i++) {
-      
+
       for (let j = 0; j < localStorage['blockHeight']; j++) {
 
         const item = block.children[j].children[i]
-        
+
         // Add its value
         if (item.value) output.value += item.value;
         else output.value += ' ';
@@ -20,11 +33,65 @@ document.addEventListener("DOMContentLoaded", () => { // IIFE to avoid globals
         if (j === localStorage['blockHeight'] - 1) output.value += '\r\n'
 
       }
-      
+
     }
 
   }
-  
+
+  // NOTE  : Focus a number of selected elements.
+  const selectFocus = (block, firstColumn = 0, firstRow = 0, secondColumn = 0, secondRow = 0) => {
+
+    // Remove previous elements that were selected
+    // Had to make a loop because normal get plus removing was working a weird manner.
+    const removeSelected = () => {
+      while (c('selected').length >= 1) {
+
+        const selectedInputs = c('selected');
+        for (const selected of selectedInputs) selected.classList.remove('selected');
+
+      }
+    }
+    
+    // Just to make sure.
+    [firstColumn, secondColumn, firstRow, secondRow] = [parseInt(firstColumn), parseInt(secondColumn), parseInt(firstRow), parseInt(secondRow)]
+
+
+    // TODO: if SHIFT is enable, don't run this
+    removeSelected(); 
+    
+    // If just one element, reset the selection to none.
+    if (firstColumn === secondColumn && firstRow === secondRow) return;
+
+    // Switch to normal range {0,?} instead of {?, ?}
+    if (firstColumn >= secondColumn) {
+
+      const greaterColumn = firstColumn;
+      firstColumn = secondColumn;
+      secondColumn = greaterColumn;
+
+    }
+    if (firstRow >= secondRow) {
+
+      const greaterRow = firstRow;
+      firstRow = secondRow;
+      secondRow = greaterRow;
+
+    }
+
+    // Add focus to new selected elements
+    //console.log(`After: From ${firstColumn} to ${secondColumn}.\nAfter: From ${firstRow} to ${secondRow}.`)
+    for (let i = firstColumn; i <= secondColumn; i++) {
+
+      for (let j = firstRow; j <= secondRow; j++) {
+
+        block.children[i].children[j].classList.add('selected')
+
+      }
+
+    }
+    
+  }
+
   // To move a item position to another
   const moveFocus = (direction, column, row) => {
 
@@ -63,11 +130,11 @@ document.addEventListener("DOMContentLoaded", () => { // IIFE to avoid globals
         if      (row    === blockHeight + 1) row    = 0;
 
     }
-    
-      document.getElementsByClassName('column')[column].children[row].focus();
+
+    c('column')[column].children[row].focus();
 
   }
-  
+
    fetch('./data/config.json')
   .then(response => response.json())
   .then(json => {
@@ -76,7 +143,8 @@ document.addEventListener("DOMContentLoaded", () => { // IIFE to avoid globals
     window.document.title = `ascii-creator ${json['title-icons'][json['title-icons'].length * Math.random() | 0]}`
 
     // Our container for the blocks and columns
-    const block = document.getElementById('block')
+    const block = g('block')
+    block.addEventListener('mouseleave', () => button_down = 0)
 
     // config.json Constants
     localStorage['infiniteMoving'] = json['infinite-moving']
@@ -88,16 +156,21 @@ document.addEventListener("DOMContentLoaded", () => { // IIFE to avoid globals
     for (let i = 0; i < localStorage['blockHeight']; i++) {
 
       block.insertAdjacentHTML( 'beforeend', `<div data-column="${i}" class="column"></div>`)
-      const column = document.getElementsByClassName('column')[i]
+      const column = c('column')[i]
 
       // Add column items
       for (let j = 0; j < localStorage['blockWidth']; j++) {
 
-        column.insertAdjacentHTML( 'beforeend', `<input type="text" maxlength="1" data-column-item="${j}" class="column-item">` )
+        column.insertAdjacentHTML( 'beforeend', `<input type="text" maxlength="1" data-column="${i}" data-row="${j}" class="column-item">` )
         // Add movement event
-        const item = document.getElementsByClassName('column')[i].children[j]
+        const item = c('column')[i].children[j]
         // Set old value from localStorage
         if (localStorage[`item-${i}-${j}`]) item.value = localStorage[`item-${i}-${j}`];
+
+        /*
+         * Events for items
+         */
+        
         item.addEventListener('keydown', e => {
 
           switch (e.code) {
@@ -127,6 +200,27 @@ document.addEventListener("DOMContentLoaded", () => { // IIFE to avoid globals
                 if (localStorage['moveAfterInput'] === 'true') moveFocus('next', i, j);
               }
           }
+
+        });
+
+        item.addEventListener('mouseup', () => button_down = 0)
+        item.addEventListener('mousedown', e => {
+
+          e.preventDefault()
+          button_down = 1
+          e.explicitOriginalTarget.focus()
+          localStorage['firstColumn'] = i
+          localStorage['firstRow']    = j
+
+        });
+        item.addEventListener('mouseenter', e => {
+
+          if (button_down)
+            selectFocus( block,
+              localStorage['firstColumn'],
+              localStorage['firstRow'],
+              e.explicitOriginalTarget.getAttribute('data-column'),
+              e.explicitOriginalTarget.getAttribute('data-row'));
 
         });
 
