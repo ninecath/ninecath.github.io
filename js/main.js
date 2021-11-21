@@ -38,26 +38,24 @@ r( () => { // IIFE to avoid globals
 
   }
 
-  // NOTE  : Focus a number of selected elements.
-  const selectFocus = (block, firstColumn = 0, firstRow = 0, secondColumn = 0, secondRow = 0) => {
 
-    // Remove previous elements that were selected
-    // Had to make a loop because normal get plus removing was working a weird manner.
-    const removeSelected = () => {
-      while (c('selected').length >= 1) {
+  // Remove previous elements that were selected
+  // Had to make a loop because normal get plus removing was working a weird manner.
+  // TODO: if SHIFT is enable, don't run this
+  const removeSelected = () => {
+    while (c('selected').length >= 1) {
 
-        const selectedInputs = c('selected');
-        for (const selected of selectedInputs) selected.classList.remove('selected');
+      const selectedInputs = c('selected');
+      for (const selected of selectedInputs) selected.classList.remove('selected');
 
-      }
     }
-    
-    // Just to make sure.
-    [firstColumn, secondColumn, firstRow, secondRow] = [parseInt(firstColumn), parseInt(secondColumn), parseInt(firstRow), parseInt(secondRow)]
+  }
 
+  const parseSelection = () => {
 
-    // TODO: if SHIFT is enable, don't run this
-    removeSelected(); 
+    // Just to make sure it's a valid integer. JS is weird.
+    let [firstColumn, secondColumn, firstRow, secondRow] = 
+    [parseInt(localStorage['firstColumn']), parseInt(localStorage['secondColumn']), parseInt(localStorage['firstRow']), parseInt(localStorage['secondRow'])]
     
     // If just one element, reset the selection to none.
     if (firstColumn === secondColumn && firstRow === secondRow) return;
@@ -78,6 +76,44 @@ r( () => { // IIFE to avoid globals
 
     }
 
+    return [firstColumn, secondColumn, firstRow, secondRow]
+    
+  }
+
+  const inputFocus = (block, column = 0, row = 0, text = '') => {
+
+    if (c('selected').length > 0) {
+
+      const [firstColumn, secondColumn, firstRow, secondRow] = parseSelection()
+    
+      for (let i = firstColumn; i <= secondColumn; i++) {
+
+        for (let j = firstRow; j <= secondRow; j++) {
+
+          block.children[i].children[j].value = text
+          localStorage[`item-${i}-${j}`]      = text
+
+        }
+
+      }
+
+    }
+
+    // Main item
+    block.children[column].children[row].value = text;
+    localStorage[`item-${column}-${row}`]      = text;
+
+    updateTerminalOutput(block)
+
+  }
+
+  // NOTE  : Focus a number of selected elements.
+  const selectFocus = (block, firstColumn = 0, firstRow = 0, secondColumn = 0, secondRow = 0) => {
+
+    removeSelected();
+
+    [firstColumn, secondColumn, firstRow, secondRow] = parseSelection()
+
     // Add focus to new selected elements
     //console.log(`After: From ${firstColumn} to ${secondColumn}.\nAfter: From ${firstRow} to ${secondRow}.`)
     for (let i = firstColumn; i <= secondColumn; i++) {
@@ -89,11 +125,14 @@ r( () => { // IIFE to avoid globals
       }
 
     }
-    
+
   }
 
   // To move a item position to another
-  const moveFocus = (direction, column, row) => {
+  const moveFocus = (direction = '', column = 0, row = 0) => {
+
+    // TODO: If shift is enabled, just add this a new selected.
+    removeSelected();
 
     const isInfinite  = localStorage['infiniteMoving'],
           blockHeight = localStorage['blockHeight'] - 1,
@@ -188,15 +227,12 @@ r( () => { // IIFE to avoid globals
               moveFocus('left', i, j)
               break;
             case 'Backspace':
-              item.value = ''
-              updateTerminalOutput(block)
-              localStorage[`item-${i}-${j}`] = ''
+              inputFocus(block, i, j)
               break;
             default:
+              // If it's only one letter
               if (e.key.length === 1) {
-                item.value = e.key
-                localStorage[`item-${i}-${j}`] = e.key
-                updateTerminalOutput(block)
+                inputFocus(block, i, j, e.key)
                 if (localStorage['moveAfterInput'] === 'true') moveFocus('next', i, j);
               }
           }
@@ -209,6 +245,7 @@ r( () => { // IIFE to avoid globals
           e.preventDefault()
           button_down = 1
           e.explicitOriginalTarget.focus()
+          removeSelected(); // Add this element if shift is enabled
           localStorage['firstColumn'] = i
           localStorage['firstRow']    = j
 
@@ -219,8 +256,8 @@ r( () => { // IIFE to avoid globals
             selectFocus( block,
               localStorage['firstColumn'],
               localStorage['firstRow'],
-              e.explicitOriginalTarget.getAttribute('data-column'),
-              e.explicitOriginalTarget.getAttribute('data-row'));
+              localStorage['secondColumn'] = e.explicitOriginalTarget.getAttribute('data-column'),
+              localStorage['secondRow'] = e.explicitOriginalTarget.getAttribute('data-row'));
 
         });
 
