@@ -1,26 +1,26 @@
-#block {
+.block {
 
   background-color: red;
-  
+
   display: flex;
   flex-direction: row;
   width: fit-content; height: fit-content;
 
 
-} #block .column {
+} .block .column {
 
   background-color: green;
   
   display: flex;
   flex-direction: column;
 
-} #block .column-item {
+} .block .column-item {
 
   width: 1rem; height: 1rem;
 
   text-align: center;
 
-} #block .column-item.selected {
+} .block .column-item.selected {
 
   background-color: red;
 
