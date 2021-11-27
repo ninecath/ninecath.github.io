@@ -1,22 +1,107 @@
-.block {
+#block {
 
   display: flex;
   flex-direction: row;
   width: fit-content; height: fit-content;
 
 
-} .block .column {
+} #block .column {
 
   display: flex;
   flex-direction: column;
 
-} .block .column-item {
+} #block .column-item {
 
   text-align: center;
   background: transparent;
 
-} .block .column-item.selected {
+} #block .column-item.selected {
 
-  background-color: red;
+  background-color: var(--red-bright);
+
+}
+
+#pallete {
+
+} #pallete .part {
+
+
+
+} #pallete .colour {
+
+  width: 1.75rem; height: 1.75rem;
+  border-radius: .25rem;
+  display: inline-block;
+  
+
+} #pallete .bright {
+
+} #pallete .selectedColour {
+
+  width: 2rem; height: 2rem;
+
+} #pallete #black.colour {
+
+  background-color: var(--black);
+
+} #pallete #blackBright.colour {
+
+  background-color: var(--black-bright);
+
+} #pallete #red.colour {
+
+  background-color: var(--red);
+
+} #pallete #redBright.colour {
+
+  background-color: var(--red-bright);
+  
+} #pallete #green.colour {
+
+  background-color: var(--green);
+
+} #pallete #greenBright.colour {
+
+  background-color: var(--green-bright);
+
+} #pallete #yellow.colour {
+
+  background-color: var(--yellow);
+
+} #pallete #yellowBright.colour {
+
+  background-color: var(--yellow-bright);
+
+} #pallete #blue.colour {
+
+  background-color: var(--blue);
+
+} #pallete #blueBright.colour {
+
+  background-color: var(--blue-bright);
+
+} #pallete #purple.colour {
+
+  background-color: var(--purple);
+
+} #pallete #purpleBright.colour {
+
+  background-color: var(--purple-bright);
+
+} #pallete #cyan.colour {
+
+  background-color: var(--cyan);
+
+} #pallete #cyanBright.colour {
+
+  background-color: var(--cyan-bright);
+
+} #pallete #white.colour {
+
+  background-color: var(--white);
+
+} #pallete #whiteBright.colour {
+
+  background-color: var(--white-bright);
 
 }

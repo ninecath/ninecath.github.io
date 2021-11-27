@@ -1,5 +1,12 @@
 import { r, g, c, n } from "./xeact.js";
 
+Element.prototype.setMultipleAttributes = function(attributes = [], values = []) {
+  if (attributes.length !== values.length)
+    return console.log('setMultipleAttributes: values and attributes do not have the same length.');
+//  const thisElement = this;
+  attributes.forEach( (item, i) => this.setAttribute(item, values[i]));
+}
+
 /*
  * Mouse events initialize
  */
@@ -17,7 +24,7 @@ var selectedItems = []
  **/
 
 
-r( () => { // IIFE to avoid globals
+r( async () => { // IIFE to avoid globals
 
 
 
@@ -37,7 +44,7 @@ r( () => { // IIFE to avoid globals
     create (container) {
 
       container.insertAdjacentHTML( 'beforeend', this.item('block') )
-      return c('block')[0]
+      return g('block')
 
     }
 
@@ -50,7 +57,7 @@ r( () => { // IIFE to avoid globals
         case 'column':
           return `<div data-column="${column}" class="column"></div>`
         case 'block':
-          return `<div class="block"></div>`
+          return `<div id="block"></div>`
 
       }
 
@@ -72,12 +79,39 @@ r( () => { // IIFE to avoid globals
 
           // Set old value from localStorage for this item.
           if (localStorage[`item-${i}-${j}`]) item.value = localStorage[`item-${i}-${j}`];
+          if (localStorage[`item-fg-${i}-${j}`]) item.style.color = localStorage[`item-fg-${i}-${j}`];
+          if (localStorage[`item-bg-${i}-${j}`]) item.style.backgroundColor = localStorage[`item-bg-${i}-${j}`];
 
-          /* Events for items */
+          // Events for items
           item.addEventListener('keydown', e => {
 
             switch (e.code) {
-
+              // Apply pallete colours.
+              case 'Digit1':
+                selectColour('black', e.ctrlKey)
+                break;
+              case 'Digit2':
+                 selectColour('red', e.ctrlKey)
+                break;
+              case 'Digit3':
+                selectColour('green', e.ctrlKey)
+                break;
+              case 'Digit4':
+                selectColour('yellow', e.ctrlKey)
+                break;
+              case 'Digit5':
+                selectColour('blue', e.ctrlKey)
+                break;
+              case 'Digit6':
+                selectColour('purple', e.ctrlKey)
+                break;
+              case 'Digit7':
+                selectColour('cyan', e.ctrlKey)
+                break;
+              case 'Digit8':
+                selectColour('white', e.ctrlKey)
+                break;
+              // Main keys.
               case 'ArrowUp':
                 moveFocus(block, 'up', i, j, e.shiftKey)
                 break;
@@ -92,6 +126,15 @@ r( () => { // IIFE to avoid globals
                 break;
               case 'Backspace':
                 inputFocus(block, i, j)
+                break;
+              case 'Delete':
+                  const item = block.children[i].children[j]
+                  item.style.color = ''
+                  item.style.backgroundColor = ''
+                  item.value = ''
+                  localStorage[`item-${i}-${j}`] = ''
+                  localStorage[`item-fg-${i}-${j}`] = ''
+                  localStorage[`item-bg-${i}-${j}`] = ''
                 break;
               default:
                 // If it's only one letter
@@ -114,7 +157,9 @@ r( () => { // IIFE to avoid globals
             localStorage['firstRow']    = j
 
           });
-          
+
+          // TODO: Middle click to toggle colour.
+
           item.addEventListener('mouseenter', e => {
 
             if (button_down)
@@ -140,6 +185,17 @@ r( () => { // IIFE to avoid globals
   /*
    * Functions and main methods.
    */
+
+
+  // Transform hex to RGB object.
+  const toRGB = (hex = '') => {
+    const result = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(hex);
+    return result ? [
+      parseInt(result[1], 16),
+      parseInt(result[2], 16),
+      parseInt(result[3], 16)
+    ] : null;
+  }
 
   // To update the terminal output
   const updateTerminalOutput = block => {
@@ -209,26 +265,40 @@ r( () => { // IIFE to avoid globals
     
   }
 
-  // xeact alike
-
   // Set the new character to the list of inputs.
-  const inputFocus = (block, column = 0, row = 0, text = '') => {
+  const inputFocus = (block, column = 0, row = 0, text, colour = localStorage['data-colour']) => {
 
-    if (c('selected').length > 0) {
+    // Apply the colour for the item and text.
+    const applyItemColour = (columnItem = 0, rowItem = 0) => {
 
-      for (const item of selectedItems) {
+      // Get item from document.
+      const item = block.children[columnItem].children[rowItem]
 
-        block.children[item[0]].children[item[1]].value = text
-        localStorage[`item-${item[0]}-${item[1]}`]      = text
-
+      // Apply colour.
+      if (localStorage['isBackground'] === 'true') {
+        item.style.backgroundColor = colour
+        localStorage[`item-bg-${columnItem}-${rowItem}`] = colour
       }
+      else {
+        item.style.color = colour
+        localStorage[`item-fg-${columnItem}-${rowItem}`] = colour
+      }
+
+      // Apply text.
+      item.value = text
+      localStorage[`item-${columnItem}-${rowItem}`] = text
 
     }
 
-    // Main item
-    block.children[column].children[row].value = text;
-    localStorage[`item-${column}-${row}`]      = text;
+    if (c('selected').length > 0) {
 
+      for (const itemInf of selectedItems)
+        applyItemColour(itemInf[0], itemInf[1]);
+
+    } else
+      applyItemColour(column, row);
+
+    // Pass the new text to the output block.
     updateTerminalOutput(block)
 
   }
@@ -309,6 +379,34 @@ r( () => { // IIFE to avoid globals
 
   }
 
+  // Apply a colour of a pallete.
+  const selectColour = (element, isCtrl = false, isElement = false) => {
+
+    const cleanOthers = () => {
+      for (const selected of c('selectedColour')) selected.classList.remove('selectedColour');
+      localStorage['data-colour'] = ''
+    }
+
+    if (element === undefined) return cleanOthers();
+
+    if (!isElement) {
+      // Pick bright colour from pallete if CTRL is enabled.
+      if (isCtrl) element += 'Bright';
+      element = g(element)
+    }
+
+    if (element.classList.contains('selectedColour')) cleanOthers();
+    else {
+
+      cleanOthers()
+
+      element.classList.add('selectedColour')
+      localStorage['data-colour'] = element.getAttribute('data-colour')
+
+    }
+    
+  }
+  
   // Load config.json.
   fetch('./data/config.json')
   .then(response => response.json())
@@ -316,13 +414,13 @@ r( () => { // IIFE to avoid globals
 
     // New block to input new art.
     const newBlock = (items = [], remove = false) => {
-      if (remove) c('block')[0].remove();
+      if (remove) g('block').remove();
 
       items.forEach( item => localStorage[item] = n(item)[0].value)
 
       const mainBlock = new Block(document.body, localStorage['blockHeight'], localStorage['blockWidth'])
             mainBlock.render()
-      updateTerminalOutput(c('block')[0])
+      updateTerminalOutput(g('block'))
 
     }
 
@@ -339,7 +437,7 @@ r( () => { // IIFE to avoid globals
       items.forEach( item => localStorage[item] = n(item)[0].value)
 
       styleSheet.insertRule(`
-        .block .column-item {
+        #block .column-item {
 
           font-size: ${localStorage['fontSize']}px;
           width: ${localStorage['itemWidth']}rem; height: ${localStorage['itemHeight']}rem;
@@ -348,7 +446,7 @@ r( () => { // IIFE to avoid globals
       `, 0);
 
       styleSheet.insertRule(`
-        .block {
+        #block {
 
           backdrop-filter: opacity(${localStorage['blockOpacity']}%) blur(${localStorage['blockBlur']}px);
 
@@ -358,11 +456,45 @@ r( () => { // IIFE to avoid globals
     }
 
     // Apply the first (or last used) theme to the whole page.
-/*    updateTheme = (theme = {}) => {
+    const updateTheme = theme => {
 
-      
+      // Add colours RGB parameters to pallete picker.
+      const nameRGB = 'data-colour'
+      g('black').setAttribute( nameRGB, theme.Black )
+      g('blackBright').setAttribute( nameRGB, theme.BlackBright )
+      g('red').setAttribute( nameRGB, theme.Red )
+      g('redBright').setAttribute( nameRGB, theme.RedBright )
+      g('green').setAttribute( nameRGB, theme.Green )
+      g('greenBright').setAttribute( nameRGB, theme.GreenBright )
+      g('yellow').setAttribute( nameRGB, theme.Yellow )
+      g('yellowBright').setAttribute( nameRGB, theme.YellowBright )
+      g('blue').setAttribute( nameRGB, theme.Blue )
+      g('blueBright').setAttribute( nameRGB, theme.BlueBright )
+      g('purple').setAttribute( nameRGB, theme.Purple )
+      g('purpleBright').setAttribute( nameRGB, theme.PurpleBright )
+      g('cyan').setAttribute( nameRGB, theme.Cyan )
+      g('cyanBright').setAttribute( nameRGB, theme.CyanBright )
+      g('white').setAttribute( nameRGB, theme.White )
+      g('whiteBright').setAttribute( nameRGB, theme.WhiteBright )
 
-    }*/
+      document.styleSheets[0].insertRule(`
+
+        :root {
+
+          --black: ${theme.Black}; --black-bright: ${theme.BlackBright};
+          --red: ${theme.Red}; --red-bright: ${theme.RedBright};
+          --green: ${theme.Green}; --green-bright: ${theme.GreenBright};
+          --yellow: ${theme.Yellow}; --yellow-bright: ${theme.YellowBright};
+          --blue: ${theme.Blue}; --blue-bright: ${theme.BlueBright};
+          --purple: ${theme.Purple}; --purple-bright: ${theme.PurpleBright};
+          --cyan: ${theme.Cyan}; --cyan-bright: ${theme.CyanBright};
+          --white: ${theme.White}; --white-bright: ${theme.WhiteBright};
+
+        }
+
+      `, 0);
+
+    }
 
     // Random title name
     window.document.title = `ascii-creator ${json['titleIcons'][json['titleIcons'].length * Math.random() | 0]}`;
@@ -381,7 +513,7 @@ r( () => { // IIFE to avoid globals
     }
 
     // Update automatically when check/uncheck.
-    [ 'infiniteMoving', 'moveAfterInput' ].forEach( item => {
+    [ 'infiniteMoving', 'moveAfterInput', 'isBackground' ].forEach( item => {
       n(item)[0].addEventListener( 'change', e => {
         localStorage[item] = e.target.checked
       })
@@ -403,12 +535,18 @@ r( () => { // IIFE to avoid globals
       })
     });
 
+    // Add events for colours to pick.
+    for (const item of c('colour'))
+      item.addEventListener( 'click', () => selectColour(item, undefined, true));
 
     // Apply theme to the page.
-    //updateTheme('arcoiris')
+    updateTheme(json.themes['arcoiris'])
 
     // Update style of the items.
     updateItemStyle(styleKeys)
+
+    // Clean the selected colour that we had.
+    selectColour(undefined)
 
     // Our container for the blocks and columns.
     newBlock(formatKeys)

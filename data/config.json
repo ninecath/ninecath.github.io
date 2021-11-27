@@ -16,9 +16,8 @@
   "fonts": [
     "", ""
   ],
-  "themes": [
-    {
-      "Name": "arcoíris",
+  "themes": {
+    "arcoiris": {
       "Author": "BeyondMagic - J. Farias <koetemagie@gmail.com>",
       "Link": "https://github.com/BeyondMagic/arcoiris-nvim-theme",
       "Image": {
@@ -42,5 +41,5 @@
       "White":        "#FDFCFD",
       "WhiteBright":  "#FFFFFF"
     }
-  ]
+  }
 }
