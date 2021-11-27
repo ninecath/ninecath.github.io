@@ -315,7 +315,10 @@ r( () => { // IIFE to avoid globals
   .then(json => {
 
     // New block to input new art.
-    const newBlock = () => {
+    const newBlock = (items = [], remove = false) => {
+      if (remove) c('block')[0].remove();
+
+      items.forEach( item => localStorage[item] = n(item)[0].value)
 
       const mainBlock = new Block(document.body, localStorage['blockHeight'], localStorage['blockWidth'])
             mainBlock.render()
@@ -324,9 +327,18 @@ r( () => { // IIFE to avoid globals
     }
 
     // Update the styles of items, like font-size and width.
-    const updateItemStyle = (remove = false) => {
-      if (remove) document.styleSheets[0].deleteRule(0);
-      document.styleSheets[0].insertRule(`
+    const updateItemStyle = (items = [], remove = false) => {
+
+      const styleSheet = document.styleSheets[0]
+      
+      if (remove) {
+        styleSheet.deleteRule(0);
+        styleSheet.deleteRule(0);
+      }
+
+      items.forEach( item => localStorage[item] = n(item)[0].value)
+
+      styleSheet.insertRule(`
         .block .column-item {
 
           font-size: ${localStorage['fontSize']}px;
@@ -335,7 +347,22 @@ r( () => { // IIFE to avoid globals
         }
       `, 0);
 
+      styleSheet.insertRule(`
+        .block {
+
+          backdrop-filter: opacity(${localStorage['blockOpacity']}%) blur(${localStorage['blockBlur']}px);
+
+        }
+      `, 0);
+
     }
+
+    // Apply the first (or last used) theme to the whole page.
+/*    updateTheme = (theme = {}) => {
+
+      
+
+    }*/
 
     // Random title name
     window.document.title = `ascii-creator ${json['titleIcons'][json['titleIcons'].length * Math.random() | 0]}`;
@@ -361,37 +388,30 @@ r( () => { // IIFE to avoid globals
     });
 
     // Update when ENTER is pressed.
-    [ 'blockHeight', 'blockWidth' ].forEach( item => {
+    const formatKeys = [ 'blockHeight', 'blockWidth' ]
+    formatKeys.forEach( item => {
       n(item)[0].addEventListener( 'keydown', e => {
-
-        if (e.key !== 'Enter') return;
-        localStorage['blockHeight'] = n('blockHeight')[0].value
-        localStorage['blockWidth']  = n('blockWidth')[0].value
-        c('block')[0].remove()
-        newBlock()
-
+        if (e.key === 'Enter') newBlock(formatKeys, true)
       })
     });
 
     // Update when ENTER is pressed.
-    [ 'fontSize', 'itemWidth', 'itemHeight' ].forEach( item => {
+    const styleKeys = [ 'fontSize', 'itemWidth', 'itemHeight', 'blockOpacity' ]
+    styleKeys.forEach( item => {
       n(item)[0].addEventListener( 'keydown', e => {
-        if (e.key !== 'Enter') return;
-        localStorage['fontSize']  = n('fontSize')[0].value
-        localStorage['itemWidth']  = n('itemWidth')[0].value
-        localStorage['itemHeight']  = n('itemHeight')[0].value
-        updateItemStyle(true);
+        if (e.key === 'Enter') updateItemStyle(styleKeys, true);
       })
     });
 
+
+    // Apply theme to the page.
+    //updateTheme('arcoiris')
+
     // Update style of the items.
-    updateItemStyle()
+    updateItemStyle(styleKeys)
 
     // Our container for the blocks and columns.
-    const mainBlock = new Block(document.body, localStorage['blockHeight'], localStorage['blockWidth'])
-          mainBlock.render()
-
-    updateTerminalOutput(c('block')[0])
+    newBlock(formatKeys)
 
   })
 

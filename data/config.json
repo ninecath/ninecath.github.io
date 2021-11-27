@@ -4,6 +4,8 @@
   "fontSize": 12,
   "itemHeight": 1,
   "itemWidth": 1,
+  "blockOpacity": 95,
+  "blockBlur": 5,
   "infiniteMoving": true,
   "moveAfterInput": true,
   "titleIcons": [
@@ -11,8 +13,18 @@
     "=)",
     ":F"
   ],
-  "pallets": {
-    "arcoiris": {
+  "fonts": [
+    "", ""
+  ],
+  "themes": [
+    {
+      "Name": "arcoíris",
+      "Author": "BeyondMagic - J. Farias <koetemagie@gmail.com>",
+      "Link": "https://github.com/BeyondMagic/arcoiris-nvim-theme",
+      "Image": {
+        "Artist": "Kanekiru <https://www.deviantart.com/kanekiru>",
+        "Path": "arcoiris/Ignite.png"
+      },
       "Black":        "#000020",
       "BlackBright":  "#424043",
       "Red":          "#EC5E66",
@@ -30,5 +42,5 @@
       "White":        "#FDFCFD",
       "WhiteBright":  "#FFFFFF"
     }
-  }
+  ]
 }

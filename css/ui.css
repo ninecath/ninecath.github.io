@@ -1,7 +1,5 @@
 .block {
 
-  background-color: red;
-
   display: flex;
   flex-direction: row;
   width: fit-content; height: fit-content;
@@ -9,14 +7,13 @@
 
 } .block .column {
 
-  background-color: green;
-  
   display: flex;
   flex-direction: column;
 
 } .block .column-item {
 
   text-align: center;
+  background: transparent;
 
 } .block .column-item.selected {
 
