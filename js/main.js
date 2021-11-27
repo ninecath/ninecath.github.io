@@ -1,4 +1,4 @@
-import { r, g, c } from "./xeact.js";
+import { r, g, c, n } from "./xeact.js";
 
 /*
  * Mouse events initialize
@@ -18,6 +18,8 @@ var selectedItems = []
 
 
 r( () => { // IIFE to avoid globals
+
+
 
   /*
    * NOTE: This serve to create new blocks where you can edit arts.
@@ -67,7 +69,7 @@ r( () => { // IIFE to avoid globals
           // Add item in column and select.
           column.insertAdjacentHTML( 'beforeend', this.item('row', i, j) )
           const item = c('column')[i].children[j]
-          
+
           // Set old value from localStorage for this item.
           if (localStorage[`item-${i}-${j}`]) item.value = localStorage[`item-${i}-${j}`];
 
@@ -95,7 +97,7 @@ r( () => { // IIFE to avoid globals
                 // If it's only one letter
                 if (e.key.length === 1) {
                   inputFocus(block, i, j, e.key)
-                  if (localStorage['moveAfterInput'] === 'true') moveFocus('next', i, j);
+                  if (localStorage['moveAfterInput'] === 'true') moveFocus(block, 'next', i, j);
                 }
             }
 
@@ -133,6 +135,12 @@ r( () => { // IIFE to avoid globals
 
   }
 
+
+
+  /*
+   * Functions and main methods.
+   */
+
   // To update the terminal output
   const updateTerminalOutput = block => {
 
@@ -160,7 +168,6 @@ r( () => { // IIFE to avoid globals
 
 
   // Remove previous elements that were selected
-  // Had to make a loop because normal get plus removing was working a weird manner.
   const removeSelected = block => {
 
     for (const item of selectedItems) {
@@ -202,6 +209,9 @@ r( () => { // IIFE to avoid globals
     
   }
 
+  // xeact alike
+
+  // Set the new character to the list of inputs.
   const inputFocus = (block, column = 0, row = 0, text = '') => {
 
     if (c('selected').length > 0) {
@@ -223,7 +233,7 @@ r( () => { // IIFE to avoid globals
 
   }
 
-  // NOTE  : Focus a number of selected elements.
+  // Focus a number of selected elements.
   const selectFocus = (block, firstColumn = 0, firstRow = 0, secondColumn = 0, secondRow = 0, isShifted = false) => {
 
     if (!isShifted) removeSelected(block);
@@ -299,25 +309,90 @@ r( () => { // IIFE to avoid globals
 
   }
 
-   fetch('./data/config.json')
+  // Load config.json.
+  fetch('./data/config.json')
   .then(response => response.json())
   .then(json => {
 
+    // New block to input new art.
+    const newBlock = () => {
+
+      const mainBlock = new Block(document.body, localStorage['blockHeight'], localStorage['blockWidth'])
+            mainBlock.render()
+      updateTerminalOutput(c('block')[0])
+
+    }
+
+    // Update the styles of items, like font-size and width.
+    const updateItemStyle = (remove = false) => {
+      if (remove) document.styleSheets[0].deleteRule(0);
+      document.styleSheets[0].insertRule(`
+        .block .column-item {
+
+          font-size: ${localStorage['fontSize']}px;
+          width: ${localStorage['itemWidth']}rem; height: ${localStorage['itemHeight']}rem;
+
+        }
+      `, 0);
+
+    }
+
     // Random title name
-    window.document.title = `ascii-creator ${json['title-icons'][json['title-icons'].length * Math.random() | 0]}`
+    window.document.title = `ascii-creator ${json['titleIcons'][json['titleIcons'].length * Math.random() | 0]}`;
 
-    // config.json Constants
-    localStorage['infiniteMoving'] = json['infinite-moving']
-    localStorage['blockHeight']    = json['default-height']
-    localStorage['blockWidth']     = json['default-width']
-    localStorage['moveAfterInput'] = json['move-after-input']
+    // config.json
+    const storageKeys = Object.keys(json)
+    for (const item of storageKeys) {
 
-    // Our container for the blocks and columns
+      if (item === 'titleIcons') break;
+
+      if (!localStorage[item]) localStorage[item] = json[item]
+      n(item)[0].value = localStorage[item]
+      if (localStorage[item] === 'true')
+        n(item)[0].checked = true;
+
+    }
+
+    // Update automatically when check/uncheck.
+    [ 'infiniteMoving', 'moveAfterInput' ].forEach( item => {
+      n(item)[0].addEventListener( 'change', e => {
+        localStorage[item] = e.target.checked
+      })
+    });
+
+    // Update when ENTER is pressed.
+    [ 'blockHeight', 'blockWidth' ].forEach( item => {
+      n(item)[0].addEventListener( 'keydown', e => {
+
+        if (e.key !== 'Enter') return;
+        localStorage['blockHeight'] = n('blockHeight')[0].value
+        localStorage['blockWidth']  = n('blockWidth')[0].value
+        c('block')[0].remove()
+        newBlock()
+
+      })
+    });
+
+    // Update when ENTER is pressed.
+    [ 'fontSize', 'itemWidth', 'itemHeight' ].forEach( item => {
+      n(item)[0].addEventListener( 'keydown', e => {
+        if (e.key !== 'Enter') return;
+        localStorage['fontSize']  = n('fontSize')[0].value
+        localStorage['itemWidth']  = n('itemWidth')[0].value
+        localStorage['itemHeight']  = n('itemHeight')[0].value
+        updateItemStyle(true);
+      })
+    });
+
+    // Update style of the items.
+    updateItemStyle()
+
+    // Our container for the blocks and columns.
     const mainBlock = new Block(document.body, localStorage['blockHeight'], localStorage['blockWidth'])
           mainBlock.render()
 
     updateTerminalOutput(c('block')[0])
 
-  }) 
+  })
 
 })

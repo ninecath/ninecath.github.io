@@ -16,8 +16,6 @@
 
 } .block .column-item {
 
-  width: 1rem; height: 1rem;
-
   text-align: center;
 
 } .block .column-item.selected {

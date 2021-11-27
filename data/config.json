@@ -1,11 +1,34 @@
 {
-  "default-width": 15,
-  "default-height": 15,
-  "infinite-moving": true,
-  "move-after-input": false,
-  "title-icons": [
+  "blockWidth": 15,
+  "blockHeight": 15,
+  "fontSize": 12,
+  "itemHeight": 1,
+  "itemWidth": 1,
+  "infiniteMoving": true,
+  "moveAfterInput": true,
+  "titleIcons": [
     ":)",
     "=)",
     ":F"
-  ]
+  ],
+  "pallets": {
+    "arcoiris": {
+      "Black":        "#000020",
+      "BlackBright":  "#424043",
+      "Red":          "#EC5E66",
+      "RedBright":    "#ED2E62",
+      "Green":        "#009900",
+      "GreenBright":  "#5CBF53",
+      "Yellow":       "#FAC863",
+      "YellowBright": "#F3D353",
+      "Blue":         "#6699CC",
+      "BlueBright":   "#65D9EF",
+      "Purple":       "#D75F86",
+      "PurpleBright": "#FA74CE",
+      "Cyan":         "#357CD5",
+      "CyanBright":   "#519FD1",
+      "White":        "#FDFCFD",
+      "WhiteBright":  "#FFFFFF"
+    }
+  }
 }
