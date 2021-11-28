@@ -1,12 +1,5 @@
 import { r, g, c, n } from "./xeact.js";
 
-Element.prototype.setMultipleAttributes = function(attributes = [], values = []) {
-  if (attributes.length !== values.length)
-    return console.log('setMultipleAttributes: values and attributes do not have the same length.');
-//  const thisElement = this;
-  attributes.forEach( (item, i) => this.setAttribute(item, values[i]));
-}
-
 /*
  * Mouse events initialize
  */
@@ -79,8 +72,8 @@ r( async () => { // IIFE to avoid globals
 
           // Set old value from localStorage for this item.
           if (localStorage[`item-${i}-${j}`]) item.value = localStorage[`item-${i}-${j}`];
-          if (localStorage[`item-fg-${i}-${j}`]) item.style.color = localStorage[`item-fg-${i}-${j}`];
-          if (localStorage[`item-bg-${i}-${j}`]) item.style.backgroundColor = localStorage[`item-bg-${i}-${j}`];
+          if (localStorage[`item-fg-${i}-${j}`]) applyColour(block, i, j, 'fg', localStorage[`item-fg-${i}-${j}`]);
+          if (localStorage[`item-bg-${i}-${j}`]) applyColour(block, i, j, 'bg', localStorage[`item-bg-${i}-${j}`])
 
           // Events for items
           item.addEventListener('keydown', e => {
@@ -128,13 +121,13 @@ r( async () => { // IIFE to avoid globals
                 inputFocus(block, i, j)
                 break;
               case 'Delete':
-                  const item = block.children[i].children[j]
-                  item.style.color = ''
-                  item.style.backgroundColor = ''
-                  item.value = ''
-                  localStorage[`item-${i}-${j}`] = ''
-                  localStorage[`item-fg-${i}-${j}`] = ''
-                  localStorage[`item-bg-${i}-${j}`] = ''
+                const item = block.children[i].children[j]
+                item.style.color = ''
+                item.style.backgroundColor = ''
+                item.value = ''
+                localStorage[`item-${i}-${j}`] = ''
+                localStorage[`item-fg-${i}-${j}`] = ''
+                localStorage[`item-bg-${i}-${j}`] = ''
                 break;
               default:
                 // If it's only one letter
@@ -210,8 +203,22 @@ r( async () => { // IIFE to avoid globals
         const item = block.children[j].children[i]
 
         // Add its value
-        if (item.value) output.value += item.value;
-        else output.value += ' ';
+        if (item.value) {
+          let itemValue
+
+/*          if (item.getAttribute('data-fg')) {
+            item.getAttribute('data-colour')
+            itemValue += ``;
+          }
+          if (item.getAttribute('data-bg')) {
+            itemValue += ``;
+           TODO: Item without...
+          }*/
+
+            itemValue += item.value
+            
+          output.value += itemValue;
+        } else output.value += ' ';
 
         // Add line break at the end of the row
         if (j === localStorage['blockHeight'] - 1) output.value += '\r\n'
@@ -264,38 +271,60 @@ r( async () => { // IIFE to avoid globals
     return [firstColumn, secondColumn, firstRow, secondRow]
     
   }
+  
+  // Apply BG/FG colour to the item.
+  const applyColour = (block, columnItem = 0, rowItem = 0, type = '', colour = '') => {
 
-  // Set the new character to the list of inputs.
+    const item = block.children[columnItem].children[rowItem]
+
+    if (!type) {
+
+      if (localStorage['isBackground'] === 'true') {
+        if (colour[0] === '#') item.style.backgroundColor = colour;
+        else if (colour)       item.classList.add(`${colour}bg`);
+        localStorage[`item-bg-${columnItem}-${rowItem}`] = colour
+      }
+      else {
+        if (colour[0] === '#') item.style.color = colour;
+        else if (colour)       item.classList.add(`${colour}fg`);
+        localStorage[`item-fg-${columnItem}-${rowItem}`] = colour
+      }
+
+    } else {
+      if (type === 'bg') {
+        if (colour[0] === '#') item.style.backgroundColor = colour;
+        else if (colour)       item.classList.add(`${colour}bg`);
+        localStorage[`item-bg-${columnItem}-${rowItem}`] = colour
+      }
+      else {
+        if (colour[0] === '#') item.style.color = colour;
+        else if (colour)       item.classList.add(`${colour}fg`);
+        localStorage[`item-fg-${columnItem}-${rowItem}`] = colour
+      }
+
+    }
+  }
+  
   const inputFocus = (block, column = 0, row = 0, text, colour = localStorage['data-colour']) => {
 
     // Apply the colour for the item and text.
     const applyItemColour = (columnItem = 0, rowItem = 0) => {
 
-      // Get item from document.
       const item = block.children[columnItem].children[rowItem]
 
-      // Apply colour.
-      if (localStorage['isBackground'] === 'true') {
-        item.style.backgroundColor = colour
-        localStorage[`item-bg-${columnItem}-${rowItem}`] = colour
-      }
-      else {
-        item.style.color = colour
-        localStorage[`item-fg-${columnItem}-${rowItem}`] = colour
-      }
+      // Get item from document.
+      applyColour(block, columnItem, rowItem, undefined, colour)
 
       // Apply text.
       item.value = text
       localStorage[`item-${columnItem}-${rowItem}`] = text
 
     }
-
-    if (c('selected').length > 0) {
-
+    
+    if (c('selected').length > 0)
       for (const itemInf of selectedItems)
         applyItemColour(itemInf[0], itemInf[1]);
-
-    } else
+    else
       applyItemColour(column, row);
 
     // Pass the new text to the output block.
@@ -380,20 +409,22 @@ r( async () => { // IIFE to avoid globals
   }
 
   // Apply a colour of a pallete.
-  const selectColour = (element, isCtrl = false, isElement = false) => {
+  const selectColour = (elementName, isCtrl = false, isElement = false) => {
+
+    let element;
 
     const cleanOthers = () => {
       for (const selected of c('selectedColour')) selected.classList.remove('selectedColour');
       localStorage['data-colour'] = ''
     }
 
-    if (element === undefined) return cleanOthers();
+    if (elementName === undefined) return cleanOthers();
 
     if (!isElement) {
       // Pick bright colour from pallete if CTRL is enabled.
-      if (isCtrl) element += 'Bright';
-      element = g(element)
-    }
+      if (isCtrl) elementName += 'Bright';
+      element = g(elementName)
+    } else element = elementName;
 
     if (element.classList.contains('selectedColour')) cleanOthers();
     else {
@@ -404,9 +435,9 @@ r( async () => { // IIFE to avoid globals
       localStorage['data-colour'] = element.getAttribute('data-colour')
 
     }
-    
+
   }
-  
+
   // Load config.json.
   fetch('./data/config.json')
   .then(response => response.json())
@@ -428,7 +459,7 @@ r( async () => { // IIFE to avoid globals
     const updateItemStyle = (items = [], remove = false) => {
 
       const styleSheet = document.styleSheets[0]
-      
+
       if (remove) {
         styleSheet.deleteRule(0);
         styleSheet.deleteRule(0);
@@ -459,23 +490,10 @@ r( async () => { // IIFE to avoid globals
     const updateTheme = theme => {
 
       // Add colours RGB parameters to pallete picker.
-      const nameRGB = 'data-colour'
-      g('black').setAttribute( nameRGB, theme.Black )
-      g('blackBright').setAttribute( nameRGB, theme.BlackBright )
-      g('red').setAttribute( nameRGB, theme.Red )
-      g('redBright').setAttribute( nameRGB, theme.RedBright )
-      g('green').setAttribute( nameRGB, theme.Green )
-      g('greenBright').setAttribute( nameRGB, theme.GreenBright )
-      g('yellow').setAttribute( nameRGB, theme.Yellow )
-      g('yellowBright').setAttribute( nameRGB, theme.YellowBright )
-      g('blue').setAttribute( nameRGB, theme.Blue )
-      g('blueBright').setAttribute( nameRGB, theme.BlueBright )
-      g('purple').setAttribute( nameRGB, theme.Purple )
-      g('purpleBright').setAttribute( nameRGB, theme.PurpleBright )
-      g('cyan').setAttribute( nameRGB, theme.Cyan )
-      g('cyanBright').setAttribute( nameRGB, theme.CyanBright )
-      g('white').setAttribute( nameRGB, theme.White )
-      g('whiteBright').setAttribute( nameRGB, theme.WhiteBright )
+      [ 'black', 'blackBright', 'red', 'redBright', 'green', 'greenBright',
+        'yellow', 'yellowBright', 'blue', 'blueBright', 'purple', 'purpleBright',
+        'cyan', 'cyanBright', 'white', 'whiteBright' ]
+        .forEach( item => g(item).setAttribute( 'data-colour', item ));
 
       document.styleSheets[0].insertRule(`
 

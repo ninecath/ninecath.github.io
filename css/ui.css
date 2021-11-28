@@ -17,90 +17,108 @@
 
 } #block .column-item.selected {
 
-  background-color: var(--red-bright);
+  border-color: var(--red-bright);
 
 }
+
+#block .column-item.blackbg { color: var(--black); }
+#block .column-item.blackBrightbg { color: var(--blackBright); }
+#block .column-item.fg.red { color: var(--red); }
+#block .column-item.fg.redBright { color: var(--redBright); }
+#block .column-item.fg.green { color: var(--green); }
+#block .column-item.fg.greenBright { color: var(--greenBright); }
+#block .column-item.fg.yellow { color: var(--yellow); }
+#block .column-item.fg.yellowBright { color: var(--yellowBright); }
+#block .column-item.fg.blue { color: var(--blue); }
+#block .column-item.fg.blueBright { color: var(--blueBright); }
+#block .column-item.fg.blue { color: var(--blue); }
+#block .column-item.fg.blueBright { color: var(--blueBright); }
+#block .column-item.fg.purple { color: var(--purple); }
+#block .column-item.fg.purpleBright { color: var(--purpleBright); }
+#block .column-item.fg.cyan { color: var(--cyan); }
+#block .column-item.fg.cyanBright { color: var(--cyanBright); }
+#block .column-item.fg.white { color: var(--white); }
+#block .column-item.fg.whiteBright { color: var(--whiteBright); }
+
+/* Pallete */
 
 #pallete {
 
 } #pallete .part {
 
-
-
 } #pallete .colour {
 
-  width: 1.75rem; height: 1.75rem;
+  width: 1.666rem; height: 1.666rem;
   border-radius: .25rem;
   display: inline-block;
-  
 
 } #pallete .bright {
-
+  
 } #pallete .selectedColour {
 
   width: 2rem; height: 2rem;
 
-} #pallete #black.colour {
+} #block .column-item.bg.black, #pallete #black.colour {
 
   background-color: var(--black);
 
-} #pallete #blackBright.colour {
+} #block .column-item.bg.blackBright, #pallete #blackBright.colour {
 
   background-color: var(--black-bright);
 
-} #pallete #red.colour {
+} #block .column-item.bg.red, #pallete #red.colour {
 
   background-color: var(--red);
 
-} #pallete #redBright.colour {
+} #block .column-item.bg.redBright, #pallete #redBright.colour {
 
   background-color: var(--red-bright);
   
-} #pallete #green.colour {
+} #block .column-item.bg.green, #pallete #green.colour {
 
   background-color: var(--green);
 
-} #pallete #greenBright.colour {
+} #block .column-item.bg.greenBright, #pallete #greenBright.colour {
 
   background-color: var(--green-bright);
 
-} #pallete #yellow.colour {
+} #block .column-item.bg.yellow, #pallete #yellow.colour {
 
   background-color: var(--yellow);
 
-} #pallete #yellowBright.colour {
+} #block .column-item.bg.yellowBrigh, #pallete #yellowBright.colour {
 
   background-color: var(--yellow-bright);
 
-} #pallete #blue.colour {
+} #block .column-item.bg.blue, #pallete #blue.colour {
 
   background-color: var(--blue);
 
-} #pallete #blueBright.colour {
+} #block .column-item.bg.blueBright, #pallete #blueBright.colour {
 
   background-color: var(--blue-bright);
 
-} #pallete #purple.colour {
+} #block .column-item.bg.purple, #pallete #purple.colour {
 
   background-color: var(--purple);
 
-} #pallete #purpleBright.colour {
+} #block .column-item.bg.purpleBright, #pallete #purpleBright.colour {
 
   background-color: var(--purple-bright);
 
-} #pallete #cyan.colour {
+} #block .column-item.bg.cyan, #pallete #cyan.colour {
 
   background-color: var(--cyan);
 
-} #pallete #cyanBright.colour {
+} #block .column-item.bg.cyanBright, #pallete #cyanBright.colour {
 
   background-color: var(--cyan-bright);
 
-} #pallete #white.colour {
+} #block .column-item.bg.white, #pallete #white.colour {
 
   background-color: var(--white);
 
-} #pallete #whiteBright.colour {
+} #block .column-item.bg.whiteBright, #pallete #whiteBright.colour {
 
   background-color: var(--white-bright);
 
