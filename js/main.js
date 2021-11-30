@@ -335,6 +335,11 @@ r( async () => { // IIFE to avoid globals
 
     }
 
+    // Remove trailed spaces of the right.
+    output.value = output.value.replace(/ +$/gm, '');
+
+    // TODO: Remove enough left spaces of each line to center it.
+
   }
 
 
