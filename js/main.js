@@ -335,10 +335,17 @@ r( async () => { // IIFE to avoid globals
 
     }
 
+    // Remove trailed spaces of the left to center the art.
+    let leftSpace = output.value.replace(/(?!^ +)\S.*/gm, '').split('\n')
+    leftSpace.pop() // Remove useless extra line...
+    leftSpace = Math.min(...(leftSpace.map(el => el.length)))
+    output.value = output.value.replace(new RegExp(`^ {${leftSpace}}`, 'gm'), '')
+
     // Remove trailed spaces of the right.
     output.value = output.value.replace(/ +$/gm, '');
 
-    // TODO: Remove enough left spaces of each line to center it.
+    // Remove first empty lines and last empty lines.
+    output.value = output.value.replace(/^\n*|\n+$/g, '')
 
   }
 
