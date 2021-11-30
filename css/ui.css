@@ -40,6 +40,10 @@
 #block .column-item[data-fg="white"] { color: var(--white); }
 #block .column-item[data-fg="whiteBright"] { color: var(--white-bright); }
 
+#block .column-item[data-bold="true"] { font-weight: bold; }
+#block .column-item[data-underline="true"] { text-decoration: underline; }
+#block .column-item[data-italic="true"] { font-style: italic; }
+
 /* Pallete */
 
 #pallete {
@@ -51,8 +55,6 @@
   width: 1.666rem; height: 1.666rem;
   border-radius: .25rem;
   display: inline-block;
-
-} #pallete .bright {
   
 } #pallete .selectedColour {
 

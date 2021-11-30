@@ -80,6 +80,9 @@ r( async () => { // IIFE to avoid globals
           if (localStorage[`item-${i}-${j}`]) item.value = localStorage[`item-${i}-${j}`];
           if (localStorage[`item-fg-${i}-${j}`]) applyColour(block, i, j, 'fg', localStorage[`item-fg-${i}-${j}`]);
           if (localStorage[`item-bg-${i}-${j}`]) applyColour(block, i, j, 'bg', localStorage[`item-bg-${i}-${j}`])
+          if (localStorage[`item-bold-${i}-${j}`]) applyEffect(block, i, j, 'bold', localStorage[`item-bold-${i}-${j}`]);
+          if (localStorage[`item-underline-${i}-${j}`]) applyEffect(block, i, j, 'underline', localStorage[`item-underline-${i}-${j}`])
+          if (localStorage[`item-italic-${i}-${j}`]) applyEffect(block, i, j, 'italic', localStorage[`item-italic-${i}-${j}`])
 
           // Events for items
           item.addEventListener('keydown', e => {
@@ -130,14 +133,24 @@ r( async () => { // IIFE to avoid globals
               case 'Enter':
                 inputFocus(i, j, undefined)
                 break;
+              // Delete all the information about the item.
               case 'Delete':
                 const item = block.children[i].children[j]
                 item.style.color = ''
                 item.style.backgroundColor = ''
                 item.value = ' '
+                item.removeAttribute('data-fg')
+                item.removeAttribute('data-bg')
+                item.removeAttribute('data-bold')
+                item.removeAttribute('data-italic')
+                item.removeAttribute('data-underline')
                 localStorage[`item-${i}-${j}`] = ' '
                 localStorage[`item-fg-${i}-${j}`] = ''
                 localStorage[`item-bg-${i}-${j}`] = ''
+                localStorage[`item-bold-${i}-${j}`] = ''
+                localStorage[`item-italic-${i}-${j}`] = ''
+                localStorage[`item-underline-${i}-${j}`] = ''
+                updateTerminalOutput(block)
                 break;
               default:
                 // If it's only one letter
@@ -196,6 +209,44 @@ r( async () => { // IIFE to avoid globals
     // Reset the output to nothing.
     output.value = ''
 
+    // Transform the style effects to SHELL code..
+    /// @type{function(string boolean, string boolean, string boolean): string} */
+    const addStyles = (italic = '', bold = '', underline = '' ) => {
+
+      let valueStyles = ''
+     
+      // For bold.
+      if (bold === 'true') {
+        if (localStorage['output-last-bold'] !== 'true') valueStyles += '\\033[1m';
+        localStorage['output-last-bold'] = 'true'
+      } else {
+        if (localStorage['output-last-bold'] !== '') valueStyles += '\\033[22m';
+        localStorage['output-last-bold'] = ''
+      }
+
+      // For italic.
+      if (italic === 'true') {
+        if (localStorage['output-last-italic'] !== 'true') valueStyles += '\\033[3m';
+        localStorage['output-last-italic'] = 'true'
+      } else {
+        if (localStorage['output-last-italic'] !== '') valueStyles += '\\033[23m';
+        localStorage['output-last-italic'] = ''
+      }
+
+
+      // For underline.
+      if (underline === 'true') {
+        if (localStorage['output-last-underline'] !== 'true') valueStyles += '\\033[4m';
+        localStorage['output-last-underline'] = 'true'
+      } else {
+        if (localStorage['output-last-underline'] !== '') valueStyles += '\\033[24m';
+        localStorage['output-last-underline'] = ''
+      }
+
+      return valueStyles;
+
+    }
+    
     // Transform colour to SHELL code..
     /// @type{function(string, string): string} */
     const toShellRGB = (colour = '', type = '') => {
@@ -232,7 +283,7 @@ r( async () => { // IIFE to avoid globals
         })();
 
         // Return the complete value of that character + RGB colours.
-        return `\\033[${codeRGBType},2;${colour[0]};${colour[1]};${colour[2]}m`
+        return `\\033[${codeRGBType};2;${colour[0]};${colour[1]};${colour[2]}m`
       }
 
       // If it is one of the 4-bit (8-16 default SHELL colours).
@@ -272,6 +323,7 @@ r( async () => { // IIFE to avoid globals
 
         itemValue += toShellRGB( item.getAttribute('data-fg'), 'fg' )
         itemValue += toShellRGB( item.getAttribute('data-bg'), 'bg' )
+        itemValue += addStyles( item.getAttribute('data-bold'), item.getAttribute('data-italic'), item.getAttribute('data-underline') )
 
         // Text from the item.
         output.value += itemValue + item.value;
@@ -328,22 +380,47 @@ r( async () => { // IIFE to avoid globals
     
   }
   
-  // Apply BG/FG colour to the item.
-  const applyColour = (block, columnItem = 0, rowItem = 0, type = '', colour = '') => {
+  // Apply effect (bold, italic, underline) to an element.
+  const applyEffect = (block, column, row, type = '', isEffect) => {
 
-    const item = block.children[columnItem].children[rowItem]
+    const item = block.children[column].children[row]
+
+    // Apply such effect.
+    if (isEffect === 'true') {
+
+      item.setAttribute( `data-${type}`, isEffect );
+      localStorage[`item-${type}-${column}-${row}`] = true
+
+    // Do not apply the effect/remove it.
+    } else {
+
+      item.removeAttribute( `data-${type}` )
+      localStorage[`item-${type}-${column}-${row}`] = ''
+
+    }
+
+  }
+  
+  // Apply BG/FG colour to the item.
+  const applyColour = (block, column = 0, row = 0, type = '', colour = '') => {
+
+    const item = block.children[column].children[row]
 
     // So that repeating is not excessive...
     const addColourStyle = (element, typeItem = '') => {
 
       if (colour) {
-        
+
+        // Reset the colours set by # to normal one.
+        if (typeItem === 'bg') item.style.backgroundColor = '';
+        else item.style.color = '';
+
         // If the colour is hash and not built-in from theme.
         if (colour[0] === '#') {
           if (typeItem === 'bg') item.style.backgroundColor = colour;
           else item.style.color = colour;
         }
-        
+
         element.setAttribute(`data-${typeItem}`, colour);
 
       // Remove colour if there wasn't any selected.
@@ -353,7 +430,7 @@ r( async () => { // IIFE to avoid globals
         element.removeAttribute(`data-${typeItem}`);
       }
 
-      localStorage[`item-${typeItem}-${columnItem}-${rowItem}`] = colour
+      localStorage[`item-${typeItem}-${column}-${row}`] = colour
 
     }
 
@@ -377,6 +454,9 @@ r( async () => { // IIFE to avoid globals
 
       // Get item from document.
       applyColour(block, columnItem, rowItem, undefined, colour)
+      applyEffect(block, columnItem, rowItem, 'bold', localStorage['isBold'])
+      applyEffect(block, columnItem, rowItem, 'italic', localStorage['isItalic'])
+      applyEffect(block, columnItem, rowItem, 'underline', localStorage['isUnderline'])
 
       // Apply text.
       if (text !== undefined) {
@@ -564,6 +644,12 @@ r( async () => { // IIFE to avoid globals
         coloursNames[item] = theme[item]
       });
 
+//      c('colour').forEach( item => {
+
+        //item.setAttribute('data-colour', localStorage['rgb-0-colour'])
+
+//      });
+
       document.styleSheets[0].insertRule(`
 
         :root {
@@ -600,7 +686,7 @@ r( async () => { // IIFE to avoid globals
     }
 
     // Update automatically when check/uncheck.
-    [ 'infiniteMoving', 'moveAfterInput', 'isBackground' ].forEach( item => {
+    [ 'infiniteMoving', 'moveAfterInput', 'isBackground', 'isBold', 'isUnderline', 'isItalic' ].forEach( item => {
       n(item)[0].addEventListener( 'change', e => {
         localStorage[item] = e.target.checked
       })
