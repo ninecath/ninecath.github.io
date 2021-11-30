@@ -24,22 +24,22 @@
         "Artist": "Kanekiru <https://www.deviantart.com/kanekiru>",
         "Path": "arcoiris/Ignite.png"
       },
-      "Black":        "#000020",
-      "BlackBright":  "#424043",
-      "Red":          "#EC5E66",
-      "RedBright":    "#ED2E62",
-      "Green":        "#009900",
-      "GreenBright":  "#5CBF53",
-      "Yellow":       "#FAC863",
-      "YellowBright": "#F3D353",
-      "Blue":         "#6699CC",
-      "BlueBright":   "#65D9EF",
-      "Purple":       "#D75F86",
-      "PurpleBright": "#FA74CE",
-      "Cyan":         "#357CD5",
-      "CyanBright":   "#519FD1",
-      "White":        "#FDFCFD",
-      "WhiteBright":  "#FFFFFF"
+      "black":        "#000020",
+      "blackBright":  "#424043",
+      "red":          "#EC5E66",
+      "redBright":    "#ED2E62",
+      "green":        "#009900",
+      "greenBright":  "#5CBF53",
+      "yellow":       "#FAC863",
+      "yellowBright": "#F3D353",
+      "blue":         "#6699CC",
+      "blueBright":   "#65D9EF",
+      "purple":       "#D75F86",
+      "purpleBright": "#FA74CE",
+      "cyan":         "#357CD5",
+      "cyanBright":   "#519FD1",
+      "white":        "#FDFCFD",
+      "whiteBright":  "#FFFFFF"
     }
   }
 }

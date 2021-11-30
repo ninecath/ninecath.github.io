@@ -11,6 +11,12 @@ let button_down = 0;
  * */
 
 var selectedItems = []
+var coloursNames = {
+  'black': '', 'blackBright': '', 'red': '', 'redBright': '', 'green': '', 'greenBright': '',
+  'yellow': '', 'yellowBright': '', 'blue': '', 'blueBright': '', 'purple': '', 'purpleBright': '',
+  'cyan': '', 'cyanBright': '', 'white': '', 'whiteBright': ''
+}
+
 
 /*
  * Start everything
@@ -50,7 +56,7 @@ r( async () => { // IIFE to avoid globals
         case 'column':
           return `<div data-column="${column}" class="column"></div>`
         case 'block':
-          return `<div id="block"></div>`
+          return `<!-- Our big block -->\n<div id="block"></div>`
 
       }
 
@@ -106,19 +112,23 @@ r( async () => { // IIFE to avoid globals
                 break;
               // Main keys.
               case 'ArrowUp':
-                moveFocus(block, 'up', i, j, e.shiftKey)
+                moveFocus('up', i, j, e.shiftKey)
                 break;
               case 'ArrowDown':
-                moveFocus(block, 'down', i, j, e.shiftKey)
+                moveFocus('down', i, j, e.shiftKey)
                 break;
               case 'ArrowRight':
-                moveFocus(block, 'right', i, j, e.shiftKey)
+                moveFocus('right', i, j, e.shiftKey)
                 break;
               case 'ArrowLeft':
-                moveFocus(block, 'left', i, j, e.shiftKey)
+                moveFocus('left', i, j, e.shiftKey)
                 break;
               case 'Backspace':
-                inputFocus(block, i, j)
+                inputFocus(i, j)
+                break;
+              // Update colours.
+              case 'Enter':
+                inputFocus(i, j, undefined)
                 break;
               case 'Delete':
                 const item = block.children[i].children[j]
@@ -132,8 +142,8 @@ r( async () => { // IIFE to avoid globals
               default:
                 // If it's only one letter
                 if (e.key.length === 1) {
-                  inputFocus(block, i, j, e.key)
-                  if (localStorage['moveAfterInput'] === 'true') moveFocus(block, 'next', i, j);
+                  inputFocus(i, j, e.key)
+                  if (localStorage['moveAfterInput'] === 'true') moveFocus('next', i, j);
                 }
             }
 
@@ -206,16 +216,16 @@ r( async () => { // IIFE to avoid globals
         if (item.value) {
           let itemValue
 
-/*          if (item.getAttribute('data-fg')) {
+         if (item.getAttribute('data-fg')) {
             item.getAttribute('data-colour')
             itemValue += ``;
+            // TODO: save last colour to LocalStorage so that we don't repeat multiple times the same colour for the next column items.
           }
           if (item.getAttribute('data-bg')) {
             itemValue += ``;
-           TODO: Item without...
-          }*/
+          }
 
-            itemValue += item.value
+          itemValue += item.value
             
           output.value += itemValue;
         } else output.value += ' ';
@@ -277,36 +287,43 @@ r( async () => { // IIFE to avoid globals
 
     const item = block.children[columnItem].children[rowItem]
 
-    if (!type) {
+    // So that repeating is not excessive...
+    const addColourStyle = (element, typeItem = '') => {
 
-      if (localStorage['isBackground'] === 'true') {
-        if (colour[0] === '#') item.style.backgroundColor = colour;
-        else if (colour)       item.classList.add(`${colour}bg`);
-        localStorage[`item-bg-${columnItem}-${rowItem}`] = colour
-      }
-      else {
-        if (colour[0] === '#') item.style.color = colour;
-        else if (colour)       item.classList.add(`${colour}fg`);
-        localStorage[`item-fg-${columnItem}-${rowItem}`] = colour
+      if (colour) {
+        
+        // If the colour is hash and not built-in from theme.
+        if (colour[0] === '#') {
+          if (typeItem === 'bg') item.style.backgroundColor = colour;
+          else item.style.color = colour;
+        }
+        
+        element.setAttribute(`data-${typeItem}`, colour);
+
+      // Remove colour if there wasn't any selected.
+      } else {
+        if (typeItem === 'bg') item.style.backgroundColor = '';
+        else item.style.color = '';
+        element.removeAttribute(`data-${typeItem}`);
       }
 
-    } else {
-      if (type === 'bg') {
-        if (colour[0] === '#') item.style.backgroundColor = colour;
-        else if (colour)       item.classList.add(`${colour}bg`);
-        localStorage[`item-bg-${columnItem}-${rowItem}`] = colour
-      }
-      else {
-        if (colour[0] === '#') item.style.color = colour;
-        else if (colour)       item.classList.add(`${colour}fg`);
-        localStorage[`item-fg-${columnItem}-${rowItem}`] = colour
-      }
+      localStorage[`item-${typeItem}-${columnItem}-${rowItem}`] = colour
 
     }
-  }
-  
-  const inputFocus = (block, column = 0, row = 0, text, colour = localStorage['data-colour']) => {
 
+    if (!type) {
+
+      if (localStorage['isBackground'] === 'true') addColourStyle(item, 'bg');
+      else addColourStyle(item, 'fg');
+
+    } else addColourStyle(item, type);
+
+  }
+
+  const inputFocus = (column = 0, row = 0, text, colour = localStorage['data-colour']) => {
+
+    const block = g('block');
+    
     // Apply the colour for the item and text.
     const applyItemColour = (columnItem = 0, rowItem = 0) => {
 
@@ -316,8 +333,10 @@ r( async () => { // IIFE to avoid globals
       applyColour(block, columnItem, rowItem, undefined, colour)
 
       // Apply text.
-      item.value = text
-      localStorage[`item-${columnItem}-${rowItem}`] = text
+      if (text !== undefined) {
+        item.value = text
+        localStorage[`item-${columnItem}-${rowItem}`] = text
+      }
 
     }
     
@@ -355,10 +374,11 @@ r( async () => { // IIFE to avoid globals
   }
 
   // To move a item position to another
-  const moveFocus = (block, direction = '', column = 0, row = 0, isShifted = false) => {
+  const moveFocus = (direction = '', column = 0, row = 0, isShifted = false) => {
 
-    let oldColumn = column;
-    let oldRow    = row;
+    const block   = g('block')
+    let oldColumn = column,
+        oldRow    = row;
 
     const isInfinite  = localStorage['infiniteMoving'],
           blockHeight = localStorage['blockHeight'] - 1,
@@ -436,6 +456,9 @@ r( async () => { // IIFE to avoid globals
 
     }
 
+    // If there are current selected elements, then apply the new colour to it.
+    if (c('selected').length > 0) inputFocus(0, 0, undefined);
+
   }
 
   // Load config.json.
@@ -490,23 +513,23 @@ r( async () => { // IIFE to avoid globals
     const updateTheme = theme => {
 
       // Add colours RGB parameters to pallete picker.
-      [ 'black', 'blackBright', 'red', 'redBright', 'green', 'greenBright',
-        'yellow', 'yellowBright', 'blue', 'blueBright', 'purple', 'purpleBright',
-        'cyan', 'cyanBright', 'white', 'whiteBright' ]
-        .forEach( item => g(item).setAttribute( 'data-colour', item ));
+      Object.keys(coloursNames).forEach( item => {
+        g(item).setAttribute( 'data-colour', item)
+        coloursNames[item] = theme[item]
+      });
 
       document.styleSheets[0].insertRule(`
 
         :root {
 
-          --black: ${theme.Black}; --black-bright: ${theme.BlackBright};
-          --red: ${theme.Red}; --red-bright: ${theme.RedBright};
-          --green: ${theme.Green}; --green-bright: ${theme.GreenBright};
-          --yellow: ${theme.Yellow}; --yellow-bright: ${theme.YellowBright};
-          --blue: ${theme.Blue}; --blue-bright: ${theme.BlueBright};
-          --purple: ${theme.Purple}; --purple-bright: ${theme.PurpleBright};
-          --cyan: ${theme.Cyan}; --cyan-bright: ${theme.CyanBright};
-          --white: ${theme.White}; --white-bright: ${theme.WhiteBright};
+          --black: ${theme.black}; --black-bright: ${theme.blackBright};
+          --red: ${theme.red}; --red-bright: ${theme.redBright};
+          --green: ${theme.green}; --green-bright: ${theme.greenBright};
+          --yellow: ${theme.yellow}; --yellow-bright: ${theme.yellowBright};
+          --blue: ${theme.blue}; --blue-bright: ${theme.blueBright};
+          --purple: ${theme.purple}; --purple-bright: ${theme.purpleBright};
+          --cyan: ${theme.cyan}; --cyan-bright: ${theme.cyanBright};
+          --white: ${theme.white}; --white-bright: ${theme.whiteBright};
 
         }
 
