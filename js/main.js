@@ -52,7 +52,7 @@ r( async () => { // IIFE to avoid globals
       switch (type) {
 
         case 'row':
-          return `<input type="text" maxlength="1" data-column="${column}" data-row="${row}" class="column-item">`
+          return `<input type="text" maxlength="1" data-column="${column}" data-row="${row}" value=" " class="column-item">`
         case 'column':
           return `<div data-column="${column}" class="column"></div>`
         case 'block':
@@ -124,7 +124,7 @@ r( async () => { // IIFE to avoid globals
                 moveFocus('left', i, j, e.shiftKey)
                 break;
               case 'Backspace':
-                inputFocus(i, j)
+                inputFocus(i, j, ' ')
                 break;
               // Update colours.
               case 'Enter':
@@ -134,8 +134,8 @@ r( async () => { // IIFE to avoid globals
                 const item = block.children[i].children[j]
                 item.style.color = ''
                 item.style.backgroundColor = ''
-                item.value = ''
-                localStorage[`item-${i}-${j}`] = ''
+                item.value = ' '
+                localStorage[`item-${i}-${j}`] = ' '
                 localStorage[`item-fg-${i}-${j}`] = ''
                 localStorage[`item-bg-${i}-${j}`] = ''
                 break;
@@ -189,46 +189,92 @@ r( async () => { // IIFE to avoid globals
    * Functions and main methods.
    */
 
+  /* To update the terminal output
+  // @type{function(HTMLElement, HTMLElement): undefined} */
+  const updateTerminalOutput = (block, output = g('output')) => {
 
-  // Transform hex to RGB object.
-  const toRGB = (hex = '') => {
-    const result = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(hex);
-    return result ? [
-      parseInt(result[1], 16),
-      parseInt(result[2], 16),
-      parseInt(result[3], 16)
-    ] : null;
-  }
-
-  // To update the terminal output
-  const updateTerminalOutput = block => {
-
-    const output = g('output')
+    // Reset the output to nothing.
     output.value = ''
 
+    // Transform colour to SHELL code..
+    /// @type{function(string, string): string} */
+    const toShellRGB = (colour = '', type = '') => {
+
+      // Set a comparable string so we can verify later if there isn't any at all.
+      if (colour === null) colour = `clear-${type}`;
+ 
+      // || Verify if this colour is the same as the last one used so that it doesn't repeat 2 > times.
+      if (colour === localStorage[`output-last-${type}-colour`]) return '';
+ 
+      // Save to verify later if it is the same colour being used.
+      localStorage[`output-last-${type}-colour`] = colour
+
+      // The type of colour for the shell to apply to.
+      // 38 : foreground.
+      // 48 : background.
+      let codeRGBType = 38
+      if (type === 'bg') codeRGBType += 10;
+
+      // If there isn't anything to update...
+      if (colour === `clear-${type}`) return `\\033[${codeRGBType + 1}m`
+ 
+      // If the colour is HEX
+      if (colour[0] === '#') {
+
+        // Transform the colour to RGB from HEX.
+        colour = (() => {
+          const result = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(colour);
+          return result ? [
+            parseInt(result[1], 16),
+            parseInt(result[2], 16),
+            parseInt(result[3], 16)
+          ] : null;
+        })();
+
+        // Return the complete value of that character + RGB colours.
+        return `\\033[${codeRGBType},2;${colour[0]};${colour[1]};${colour[2]}m`
+      }
+
+      // If it is one of the 4-bit (8-16 default SHELL colours).
+      else {
+
+        let codeColour = '';
+
+        switch (colour) {
+
+          case 'black': codeColour = 30; break;  case 'blackBright': codeColour = 90; break;
+          case 'red': codeColour = 31; break;    case 'redBright': codeColour = 91; break;
+          case 'green': codeColour = 32; break;  case 'greenBright': codeColour = 92; break;
+          case 'yellow': codeColour = 33; break; case 'yellowBright': codeColour = 93; break;
+          case 'blue': codeColour = 34; break;   case 'blueBright': codeColour = 94; break;
+          case 'purple': codeColour = 35; break; case 'purpleBright': codeColour = 95; break;
+          case 'cyan': codeColour = 36; break;   case 'cyanBright': codeColour = 96; break;
+          case 'white': codeColour = 37; break;  case 'whiteBright': codeColour = 97; break;
+
+        }
+
+        if (type === 'bg') codeColour += 10;
+
+        return `\\033[${codeColour}m`
+      }
+
+    }
+
+    // Loop throughout all children.
     for (let i = 0; i < localStorage['blockWidth']; i++) {
 
       for (let j = 0; j < localStorage['blockHeight']; j++) {
 
         const item = block.children[j].children[i]
 
-        // Add its value
-        if (item.value) {
-          let itemValue
+        // Initialize text variable.
+        let itemValue = ''
 
-         if (item.getAttribute('data-fg')) {
-            item.getAttribute('data-colour')
-            itemValue += ``;
-            // TODO: save last colour to LocalStorage so that we don't repeat multiple times the same colour for the next column items.
-          }
-          if (item.getAttribute('data-bg')) {
-            itemValue += ``;
-          }
+        itemValue += toShellRGB( item.getAttribute('data-fg'), 'fg' )
+        itemValue += toShellRGB( item.getAttribute('data-bg'), 'bg' )
 
-          itemValue += item.value
-            
-          output.value += itemValue;
-        } else output.value += ' ';
+        // Text from the item.
+        output.value += itemValue + item.value;
 
         // Add line break at the end of the row
         if (j === localStorage['blockHeight'] - 1) output.value += '\r\n'
