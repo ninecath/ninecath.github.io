@@ -39,7 +39,9 @@
       "cyan":         "#357CD5",
       "cyanBright":   "#519FD1",
       "white":        "#FDFCFD",
-      "whiteBright":  "#FFFFFF"
+      "whiteBright":  "#FFFFFF",
+      "background":   "#101010",
+      "foreground":   "#FDFCFD"
     }
   }
 }

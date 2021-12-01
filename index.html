@@ -24,11 +24,16 @@
 <!-- Body Page -->
 <body>
 
+  <!-- Background -->
+  <div id="background"></div>
+
   <!-- Container for the of #block -->
-  <textarea id="output"></textarea>
+  <section id="main">
+    <textarea id="output"></textarea>
+  </section>
 
   <!-- Set options of the system -->
-  <section id="options">
+  <section id="sidebar">
     <!-- Automatic update (marked with a bright golden border) --->
     <input type="checkbox" name="infiniteMoving">
     <input type="checkbox" name="moveAfterInput">
@@ -39,12 +44,15 @@
     <!-- Need to press ENTER to update --->
     <input type="number" min="3" name="blockHeight">
     <input type="number" min="3" name="blockWidth">
-    <input type="number" min="1" name="blockOpacity">
+    <input type="number" min="0" max="1" name="blockOpacity">
     <input type="number" min="0" name="blockBlur">
     <input type="number" min="5" name="fontSize">
     <input type="number" min="0.25" name="itemHeight">
     <input type="number" min="0.25" name="itemWidth">
   </section>
+
+  <!-- Information of the creator/maintainer -->
+  <section id="information"></section>
 
   <!-- Select colours --->
   <section id="pallete">

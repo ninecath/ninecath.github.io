@@ -610,7 +610,7 @@ r( async () => { // IIFE to avoid globals
 
       items.forEach( item => localStorage[item] = n(item)[0].value)
 
-      const mainBlock = new Block(document.body, localStorage['blockHeight'], localStorage['blockWidth'])
+      const mainBlock = new Block(g('main'), localStorage['blockHeight'], localStorage['blockWidth'])
             mainBlock.render()
       updateTerminalOutput(g('block'))
 
@@ -638,9 +638,10 @@ r( async () => { // IIFE to avoid globals
       `, 0);
 
       styleSheet.insertRule(`
-        #block {
+        #block::after {
 
-          backdrop-filter: opacity(${localStorage['blockOpacity']}%) blur(${localStorage['blockBlur']}px);
+          backdrop-filter: blur(${localStorage['blockBlur']}px);
+          opacity: ${localStorage['blockOpacity']};
 
         }
       `, 0);
@@ -656,12 +657,6 @@ r( async () => { // IIFE to avoid globals
         coloursNames[item] = theme[item]
       });
 
-//      c('colour').forEach( item => {
-
-        //item.setAttribute('data-colour', localStorage['rgb-0-colour'])
-
-//      });
-
       document.styleSheets[0].insertRule(`
 
         :root {
@@ -674,6 +669,10 @@ r( async () => { // IIFE to avoid globals
           --purple: ${theme.purple}; --purple-bright: ${theme.purpleBright};
           --cyan: ${theme.cyan}; --cyan-bright: ${theme.cyanBright};
           --white: ${theme.white}; --white-bright: ${theme.whiteBright};
+
+          --background-path: url('../data/themes/${theme.Image.Path}');
+
+          --background: ${theme.background}; --foreground: ${theme.foreground};
 
         }
 
