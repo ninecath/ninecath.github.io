@@ -127,7 +127,8 @@ r( async () => { // IIFE to avoid globals
                 moveFocus('left', i, j, e.shiftKey)
                 break;
               case 'Backspace':
-                inputFocus(i, j, ' ')
+              case 'Space':
+                inputFocus(i, j, ' ', 'fg', '')
                 break;
               // Update colours.
               case 'Enter':
@@ -135,24 +136,10 @@ r( async () => { // IIFE to avoid globals
                 break;
               // Delete all the information about the item.
               case 'Delete':
-                const item = block.children[i].children[j]
-                item.style.color = ''
-                item.style.backgroundColor = ''
-                item.value = ' '
-                item.removeAttribute('data-fg')
-                item.removeAttribute('data-bg')
-                item.removeAttribute('data-bold')
-                item.removeAttribute('data-italic')
-                item.removeAttribute('data-underline')
-                localStorage[`item-${i}-${j}`] = ' '
-                localStorage[`item-fg-${i}-${j}`] = ''
-                localStorage[`item-bg-${i}-${j}`] = ''
-                localStorage[`item-bold-${i}-${j}`] = ''
-                localStorage[`item-italic-${i}-${j}`] = ''
-                localStorage[`item-underline-${i}-${j}`] = ''
-                updateTerminalOutput(block)
+                inputFocus(i, j, e.code)
                 break;
               default:
+                console.log(e)
                 // If it's only one letter
                 if (e.key.length === 1) {
                   inputFocus(i, j, e.key)
@@ -455,7 +442,7 @@ r( async () => { // IIFE to avoid globals
 
   }
 
-  const inputFocus = (column = 0, row = 0, text, colour = localStorage['data-colour']) => {
+  const inputFocus = (column = 0, row = 0, text, type = undefined, colour = localStorage['data-colour'] ) => {
 
     const block = g('block');
     
@@ -465,10 +452,21 @@ r( async () => { // IIFE to avoid globals
       const item = block.children[columnItem].children[rowItem]
 
       // Get item from document.
-      applyColour(block, columnItem, rowItem, undefined, colour)
-      applyEffect(block, columnItem, rowItem, 'bold', localStorage['isBold'])
-      applyEffect(block, columnItem, rowItem, 'italic', localStorage['isItalic'])
-      applyEffect(block, columnItem, rowItem, 'underline', localStorage['isUnderline'])
+      if (text !== 'Delete') {
+        applyColour(block, columnItem, rowItem, type, colour)
+        applyEffect(block, columnItem, rowItem, 'bold', localStorage['isBold'])
+        applyEffect(block, columnItem, rowItem, 'italic', localStorage['isItalic'])
+        applyEffect(block, columnItem, rowItem, 'underline', localStorage['isUnderline'])
+      } else {
+        applyColour(block, columnItem, rowItem, 'fg', '')
+        applyColour(block, columnItem, rowItem, 'bg', '')
+        applyEffect(block, columnItem, rowItem, 'bold', '')
+        applyEffect(block, columnItem, rowItem, 'italic', '')
+        applyEffect(block, columnItem, rowItem, 'underline', '')
+        item.value = ' '
+        localStorage[`item-${columnItem}-${rowItem}`] = ' '
+        return
+      }
 
       // Apply text.
       if (text !== undefined) {
@@ -477,10 +475,12 @@ r( async () => { // IIFE to avoid globals
       }
 
     }
-    
+
+    // Loop throughout the selected items to apply the colour.
     if (c('selected').length > 0)
       for (const itemInf of selectedItems)
-        applyItemColour(itemInf[0], itemInf[1]);
+        applyItemColour(itemInf[0], itemInf[1], text);
+    // If just one, just apply one (the current within input).
     else
       applyItemColour(column, row);
 
