@@ -1,9 +1,9 @@
 {
   "blockWidth": 15,
   "blockHeight": 15,
-  "fontSize": 12,
+  "fontSize": 14,
   "itemHeight": 1,
-  "itemWidth": 1,
+  "itemWidth": 0.6,
   "blockOpacity": 95,
   "blockBlur": 5,
   "infiniteMoving": true,
@@ -18,12 +18,14 @@
   ],
   "themes": {
     "arcoiris": {
+      "Type": "Dark",
       "Author": "BeyondMagic - J. Farias <koetemagie@gmail.com>",
       "Link": "https://github.com/BeyondMagic/arcoiris-nvim-theme",
       "Image": {
         "Artist": "Kanekiru <https://www.deviantart.com/kanekiru>",
         "Path": "arcoiris/Ignite.png"
       },
+      "FontName": "NFiraCode",
       "black":        "#000020",
       "blackBright":  "#424043",
       "red":          "#EC5E66",
@@ -42,6 +44,34 @@
       "whiteBright":  "#FFFFFF",
       "background":   "#101010",
       "foreground":   "#FDFCFD"
+    },
+    "Qualia": {
+      "Type": "Dark",
+      "Author": "Isaac W Hanson <isaac@starlig.ht>",
+      "Link": "https://github.com/arizonahanson/base16-qualia-scheme",
+      "Image": {
+        "Artist": "Kanekiru <https://www.deviantart.com/kanekiru>",
+        "Path": "arcoiris/Ignite.png"
+      },
+      "FontName": "NFiraCode",
+      "black":        "#101010",
+      "blackBright":  "#454545",
+      "red":          "#EFA6A2",
+      "redBright":    "#E0AF85",
+      "green":        "#80C990",
+      "greenBright":  "#5ACCAF",
+      "yellow":       "#A69460",
+      "yellowBright": "#C8C874",
+      "blue":         "#A3B8EF",
+      "blueBright":   "#CCACED",
+      "purple":       "#E6A3DC",
+      "purpleBright": "#F2A1C2",
+      "cyan":         "#50CACD",
+      "cyanBright":   "#74C3E4",
+      "white":        "#808080",
+      "whiteBright":  "#C0C0C0",
+      "background":   "#101010",
+      "foreground":   "#C0C0C0"
     }
   }
 }

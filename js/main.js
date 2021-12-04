@@ -64,6 +64,14 @@ r( async () => { // IIFE to avoid globals
 
     render (block = this._container) {
 
+      const runText = (column, row, letter) => {
+        // If it's only one letter
+        if (letter.length === 1) {
+          inputFocus(column, row, letter)
+          if (localStorage['moveAfterInput'] === 'true') moveFocus('next', column, row);
+        }
+      }
+
       for (let i = 0; i < this._columns; i++) {
 
         // Add column and select.
@@ -90,28 +98,44 @@ r( async () => { // IIFE to avoid globals
             switch (e.code) {
               // Apply pallete colours.
               case 'Digit1':
-                selectColour('black', e.ctrlKey)
+                if (!e.shiftKey)
+                  selectColour('black', e.ctrlKey)
+                else runText(i, j, e.key)
                 break;
               case 'Digit2':
-                 selectColour('red', e.ctrlKey)
+                if (!e.shiftKey)
+                  selectColour('red', e.ctrlKey)
+                else runText(i, j, e.key)
                 break;
               case 'Digit3':
-                selectColour('green', e.ctrlKey)
+                if (!e.shiftKey)
+                  selectColour('green', e.ctrlKey)
+                else runText(i, j, e.key)
                 break;
               case 'Digit4':
-                selectColour('yellow', e.ctrlKey)
+                if (!e.shiftKey)
+                  selectColour('yellow', e.ctrlKey)
+                else runText(i, j, e.key)
                 break;
               case 'Digit5':
-                selectColour('blue', e.ctrlKey)
+                if (!e.shiftKey)
+                  selectColour('blue', e.ctrlKey)
+                else runText(i, j, e.key)
                 break;
               case 'Digit6':
-                selectColour('purple', e.ctrlKey)
+                if (!e.shiftKey)
+                  selectColour('purple', e.ctrlKey)
+                else runText(i, j, e.key)
                 break;
               case 'Digit7':
-                selectColour('cyan', e.ctrlKey)
+                if (!e.shiftKey)
+                  selectColour('cyan', e.ctrlKey)
+                else runText(i, j, e.key)
                 break;
               case 'Digit8':
-                selectColour('white', e.ctrlKey)
+                if (!e.shiftKey)
+                  selectColour('white', e.ctrlKey)
+                else runText(i, j, e.key)
                 break;
               // Main keys.
               case 'ArrowUp':
@@ -139,12 +163,7 @@ r( async () => { // IIFE to avoid globals
                 inputFocus(i, j, e.code)
                 break;
               default:
-                console.log(e)
-                // If it's only one letter
-                if (e.key.length === 1) {
-                  inputFocus(i, j, e.key)
-                  if (localStorage['moveAfterInput'] === 'true') moveFocus('next', i, j);
-                }
+                runText(i, j, e.key)
             }
 
           });
@@ -235,9 +254,11 @@ r( async () => { // IIFE to avoid globals
     }
     
     // Transform colour to SHELL code..
-    /// @type{function(string, string): string} */
-    const toShellRGB = (colour = '', type = '') => {
+    /// @type{function(Element, string): string} */
+    const toShellRGB = (item, type = '') => {
 
+      let colour = item.getAttribute(`data-${type}`)
+      
       // Set a comparable string so we can verify later if there isn't any at all.
       if (colour === null) colour = `clear-${type}`;
  
@@ -276,20 +297,7 @@ r( async () => { // IIFE to avoid globals
       // If it is one of the 4-bit (8-16 default SHELL colours).
       else {
 
-        let codeColour = '';
-
-        switch (colour) {
-
-          case 'black': codeColour = 30; break;  case 'blackBright': codeColour = 90; break;
-          case 'red': codeColour = 31; break;    case 'redBright': codeColour = 91; break;
-          case 'green': codeColour = 32; break;  case 'greenBright': codeColour = 92; break;
-          case 'yellow': codeColour = 33; break; case 'yellowBright': codeColour = 93; break;
-          case 'blue': codeColour = 34; break;   case 'blueBright': codeColour = 94; break;
-          case 'purple': codeColour = 35; break; case 'purpleBright': codeColour = 95; break;
-          case 'cyan': codeColour = 36; break;   case 'cyanBright': codeColour = 96; break;
-          case 'white': codeColour = 37; break;  case 'whiteBright': codeColour = 97; break;
-
-        }
+        let codeColour = parseInt( g(colour).getAttribute('data-pallete') )
 
         if (type === 'bg') codeColour += 10;
 
@@ -308,8 +316,8 @@ r( async () => { // IIFE to avoid globals
         // Initialize text variable.
         let itemValue = ''
 
-        itemValue += toShellRGB( item.getAttribute('data-fg'), 'fg' )
-        itemValue += toShellRGB( item.getAttribute('data-bg'), 'bg' )
+        itemValue += toShellRGB( item, 'fg' )
+        itemValue += toShellRGB( item, 'bg' )
         itemValue += addStyles( item.getAttribute('data-bold'), item.getAttribute('data-italic'), item.getAttribute('data-underline') )
 
         // Text from the item.
@@ -323,16 +331,16 @@ r( async () => { // IIFE to avoid globals
     }
 
     // Remove trailed spaces of the left to center the art.
-    let leftSpace = output.value.replace(/(?!^ +)\S.*/gm, '').split('\n')
+    let leftSpace = output.value.replace(new RegExp('(?!^ +)\\S.*', 'gm'), '').split('\n')
     leftSpace.pop() // Remove useless extra line...
     leftSpace = Math.min(...(leftSpace.map(el => el.length)))
     output.value = output.value.replace(new RegExp(`^ {${leftSpace}}`, 'gm'), '')
 
     // Remove trailed spaces of the right.
-    output.value = output.value.replace(/ +$/gm, '');
+    output.value = output.value.replace(new RegExp(' +$', 'gm'), '');
 
     // Remove first empty lines and last empty lines.
-    output.value = output.value.replace(/^\n*|\n+$/g, '')
+    output.value = output.value.replace(new RegExp('^\n*|\n+$', 'g'), '')
 
   }
 
@@ -458,6 +466,7 @@ r( async () => { // IIFE to avoid globals
         applyEffect(block, columnItem, rowItem, 'italic', localStorage['isItalic'])
         applyEffect(block, columnItem, rowItem, 'underline', localStorage['isUnderline'])
       } else {
+        // TODO: make applyColour accept two arrays containing the types and effects
         applyColour(block, columnItem, rowItem, 'fg', '')
         applyColour(block, columnItem, rowItem, 'bg', '')
         applyEffect(block, columnItem, rowItem, 'bold', '')
@@ -622,6 +631,8 @@ r( async () => { // IIFE to avoid globals
       const styleSheet = document.styleSheets[0]
 
       if (remove) {
+        // 3 for the next 3 styles that are added...
+        styleSheet.deleteRule(0);
         styleSheet.deleteRule(0);
         styleSheet.deleteRule(0);
       }
@@ -638,6 +649,14 @@ r( async () => { // IIFE to avoid globals
       `, 0);
 
       styleSheet.insertRule(`
+        #output {
+
+          font-size: ${localStorage['fontSize']}px;
+
+        }
+      `, 0);
+
+      styleSheet.insertRule(`
         #block::after {
 
           backdrop-filter: blur(${localStorage['blockBlur']}px);
@@ -649,15 +668,18 @@ r( async () => { // IIFE to avoid globals
     }
 
     // Apply the first (or last used) theme to the whole page.
-    const updateTheme = theme => {
+    const updateTheme = (theme, remove = false) => {
 
+      // 3 for the next 3 styles that are added...
+      if (remove) styleSheet.deleteRule(0);
+      
       // Add colours RGB parameters to pallete picker.
       Object.keys(coloursNames).forEach( item => {
         g(item).setAttribute( 'data-colour', item)
         coloursNames[item] = theme[item]
       });
 
-      document.styleSheets[0].insertRule(`
+      document.styleSheets[1].insertRule(`
 
         :root {
 
@@ -671,6 +693,7 @@ r( async () => { // IIFE to avoid globals
           --white: ${theme.white}; --white-bright: ${theme.whiteBright};
 
           --background-path: url('../data/themes/${theme.Image.Path}');
+          --font-name: ${theme.FontName};
 
           --background: ${theme.background}; --foreground: ${theme.foreground};
 
@@ -712,7 +735,7 @@ r( async () => { // IIFE to avoid globals
     });
 
     // Update when ENTER is pressed.
-    const styleKeys = [ 'fontSize', 'itemWidth', 'itemHeight', 'blockOpacity' ]
+    const styleKeys = [ 'fontSize', 'itemWidth', 'itemHeight', 'blockOpacity', 'blockBlur' ]
     styleKeys.forEach( item => {
       n(item)[0].addEventListener( 'keydown', e => {
         if (e.key === 'Enter') updateItemStyle(styleKeys, true);
@@ -724,7 +747,7 @@ r( async () => { // IIFE to avoid globals
       item.addEventListener( 'click', () => selectColour(item, undefined, true));
 
     // Apply theme to the page.
-    updateTheme(json.themes['arcoiris'])
+    updateTheme(json.themes['Qualia'])
 
     // Update style of the items.
     updateItemStyle(styleKeys)

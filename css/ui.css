@@ -8,7 +8,7 @@ body {
 
   display: grid; 
   grid-template-columns: 0.7fr 1fr 1fr; 
-  grid-template-rows: 1fr 1fr 1fr; 
+  grid-template-rows: 0.1fr 1fr 0.1fr; 
   gap: 0px 0px; 
   grid-template-areas: 
     "sidebar information information"
@@ -22,6 +22,8 @@ body {
   border-right: 2px solid var(--red);
   background-color: var(--background);
   box-shadow: var(--black) 1px 4px 1rem;
+
+  color: var(--foreground);
 }
 #main {
   grid-area: main;
@@ -187,31 +189,44 @@ body {
 
   position: relative;
 
-  } #pallete .minor-pallete {
+  background-color: var(--background);
+  border-top: 2px solid var(--cyan);
 
-    background-color: var(--background);
-    padding: 0.5rem 2rem;
-    color: var(--foreground);
-    border: 2px solid var(--white);
-    box-shadow: var(--black) 1px 4px 1rem;
+  display: grid;
+  grid-template-columns: 0.5fr 0.5fr;
+  gap: 0px 0px;
+  grid-template-areas:
+    "pallete bright-pallete";
+
+  } #pallete > section:nth-child(1) {
+
+    grid-area: "pallete";
+
+  } #pallete > section:nth-child(2) {
+
+    grid-area: "bright-pallete";
+    
+  } #pallete > section {
 
     display: flex;
-    flex-direction: column;
+
     align-items: center;
-    justify-content: center;
+
+    color: var(--foreground);
+
+    position: relative;
+
+    } #pallete > section > label {
+
+      margin: 0 1rem;
+      font-size: 0.88rem;
+      font-weight: bold;
+      opacity: 0.75;
 
   } #pallete .pallete-space {
 
     display: flex;
     flex-direction: column;
-    justify-content: center;
-
-  } #pallete label {
-
-    text-transform: uppercase;
-    font-size: 0.88rem;
-    font-weight: bold;
-    opacity: 0.75;
 
   } #pallete .part {
 
@@ -339,3 +354,73 @@ body {
     color: var(--white-bright);
 
   }
+
+
+/*
+ * Sidebar
+ */
+
+#sidebar {
+
+  padding: 0.5rem 1rem;
+
+  } #sidebar input::selection {
+
+    background-color: var(--red);
+
+  } #sidebar > section {
+
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    flex-direction: column;
+
+    } #sidebar > section > span {
+
+      color: var(--red);
+      text-align: center;
+      margin-bottom: 0.5rem;
+      font-weight: bold;
+
+    } #sidebar > section > label {
+
+      font-size: 0.9rem;
+
+      } #sidebar > section > section > label > input {
+
+        margin-right: 0.5rem;
+
+      } #sidebar > section > section > label > input[type="checkbox"] {
+
+        color: red;
+        background-color: red;
+        border: 1px solid red;
+
+      } #sidebar > section > section > label > input[type="number"] {
+
+        color: var(--foreground);
+        background-color: transparent;
+        border: 1px solid var(--black-bright);
+        width: 2rem;
+        text-align: center;
+        -moz-appearance: textfield;
+
+        border-radius: 0.15rem;
+
+        } #sidebar > section > section > label > input[type="number"]:focus {
+
+          outline: none;
+          border-color: var(--white);
+
+        } #sidebar > section > section > label > input[type="number"]::-webkit-outer-spin-button,
+          #sidebar > section > section > label > input[type="number"]::-webkit-inner-spin-button {
+
+          -webkit-appearance: none;
+          margin: 0;
+
+    } #sidebar > section > section {
+
+      display: flex;
+      flex-direction: column;
+
+    }

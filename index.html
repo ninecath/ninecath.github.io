@@ -39,36 +39,27 @@
     <!-- Automatic update (marked with a bright golden border) --->
     <section class="sidebar-automatic">
       <span>Automatic</span>
-      <label for="fontSize">Scroll moving with arrow keys</label>
-      <input type="checkbox" name="infiniteMoving">
-      <label for="fontSize">Move after input of character</label>
-      <input type="checkbox" name="moveAfterInput">
-      <label for="fontSize">Background color</label>
-      <input type="checkbox" name="isBackground">
-      <label for="fontSize">Bold</label>
-      <input type="checkbox" name="isBold">
-      <label for="fontSize">Underline</label>
-      <input type="checkbox" name="isUnderline">
-      <label for="fontSize">Italic</label>
-      <input type="checkbox" name="isItalic">
+      <section>
+        <label><input type="checkbox" name="infiniteMoving">Scroll moving with arrow keys</label>
+        <label><input type="checkbox" name="moveAfterInput">Move after input of character</label>
+        <label><input type="checkbox" name="isBackground">Background color</label>
+        <label><input type="checkbox" name="isBold">Bold</label>
+        <label><input type="checkbox" name="isUnderline">Underline</label>
+        <label><input type="checkbox" name="isItalic">Italic</label>
+      </section>
     </section>
     <!-- Need to press ENTER to update --->
     <section class="sidebar-manual">
       <span>Manual</span>
-      <label for="blockHeight">Number of rows.</label>
-      <input type="number" min="3" name="blockHeight">
-      <label for="blockWidth">Number of columns.</label>
-      <input type="number" min="3" name="blockWidth">
-      <label for="blockOpacity">Opacity of the input block.</label>
-      <input type="number" min="0" max="1" name="blockOpacity">
-      <label for="blockBlur">Blur of the input block.</label>
-      <input type="number" min="0" name="blockBlur">
-      <label for="fontSize">Fontsize of the block input and output.</label>
-      <input type="number" min="5" name="fontSize">
-      <label for="fontSize">Height scale of character of the block input.</label>
-      <input type="number" min="0.25" name="itemHeight">
-      <label for="fontSize">Width scale of character of the block input.</label>
-      <input type="number" min="0.25" name="itemWidth">
+      <section>
+        <label><input type="number" min="3" name="blockHeight">Number of columns.</label>
+        <label><input type="number" min="3" name="blockWidth">Number of rows.</label>
+        <label><input type="number" min="0" max="1" name="blockOpacity">Opacity of the input block.</label>
+        <label><input type="number" min="0" name="blockBlur">Blur of the input block.</label>
+        <label><input type="number" min="5" name="fontSize">Font size of the block input and output.</label>
+        <label><input type="number" min="0.25" name="itemHeight">Height scale of character of the block input.</label>
+        <label><input type="number" min="0.25" name="itemWidth">Width scale of character of the block input.</label>
+      </section>
     </section>
   </section>
 
@@ -77,8 +68,8 @@
 
   <!-- Select colours --->
   <section id="pallete">
-    <section class="minor-pallete">
-      <label>4-bit pallete</label>
+    <section>
+      <label>4-bit pallete:</label>
       <section class="pallete-space">
         <section class="part">
           <div id="black" class="colour" data-pallete="30">1</div>
@@ -101,11 +92,34 @@
           <div id="whiteBright" class="colour" data-pallete="97">^8</div>
         </section>
       </section>
-
-      <label>RGB pallete</label>
-      <section class="part">
-        <div data-colour="#456897" style="background-color: #456897" class="rgb colour"></div>
-        <div data-colour="#200354" style="background-color: #200354" class="rgb colour"></div>
+    </section>
+    <section>
+      <label>RGB pallete:</label>
+      <section class="pallete-space">
+        <section class="part">
+          <div data-colour="#456897" style="background-color: #456897" class="rgb colour"></div>
+          <div data-colour="#200354" style="background-color: #200354" class="rgb colour"></div>
+          <div data-colour="#000000" style="background-color: #000000" class="rgb colour"></div>
+          <div data-colour="#ffffff" style="background-color: #ffffff" class="rgb colour"></div>
+          <div data-colour="#000000" style="background-color: #000000" class="rgb colour"></div>
+          <div data-colour="#ffffff" style="background-color: #ffffff" class="rgb colour"></div>
+          <div data-colour="#000000" style="background-color: #000000" class="rgb colour"></div>
+          <div data-colour="#ffffff" style="background-color: #ffffff" class="rgb colour"></div>
+          <div data-colour="#000000" style="background-color: #000000" class="rgb colour"></div>
+          <div data-colour="#ffffff" style="background-color: #ffffff" class="rgb colour"></div>
+        </section>
+        <section class="part">
+          <div data-colour="#006897" style="background-color: #006897" class="rgb colour"></div>
+          <div data-colour="#205354" style="background-color: #205354" class="rgb colour"></div>
+          <div data-colour="#000000" style="background-color: #000000" class="rgb colour"></div>
+          <div data-colour="#ffffff" style="background-color: #ffffff" class="rgb colour"></div>
+          <div data-colour="#000000" style="background-color: #000000" class="rgb colour"></div>
+          <div data-colour="#ffffff" style="background-color: #ffffff" class="rgb colour"></div>
+          <div data-colour="#000000" style="background-color: #000000" class="rgb colour"></div>
+          <div data-colour="#ffffff" style="background-color: #ffffff" class="rgb colour"></div>
+          <div data-colour="#000000" style="background-color: #000000" class="rgb colour"></div>
+          <div data-colour="#ffffff" style="background-color: #ffffff" class="rgb colour"></div>
+        </section>
       </section>
     </section>
   </section>
