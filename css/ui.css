@@ -91,7 +91,7 @@ body {
     color: var(--foreground);
     box-shadow: var(--black) 2px 2px 1rem;
 
-    position: absolute; left: 50%;
+    position: absolute; left: 50%; top: 1rem;
     transform: translateX(-50%);
     
     padding: 0.15rem 1.25rem;
