@@ -767,7 +767,8 @@ r( async () => { // IIFE to avoid globals
         if (e.key === 'c' && e.ctrlKey) {
 
           // Get numbers and input from artName
-          let text = g('output').value.split('\n')
+          // RegExp removes the shell codes
+          let text = g('output').value.replace(new RegExp(/\\033\[([\d]+;)*[\d]+m/, 'g'), '').split('\n')
           if (text[0][0] === "#") text.shift(); // If there is the comment/credits at the first line, remove it.
           text = (
               e.explicitOriginalTarget.value.replace(new RegExp(' +$', 'gm'), '')
