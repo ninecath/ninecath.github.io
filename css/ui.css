@@ -84,8 +84,22 @@ body {
   
   position: relative;
   padding: 1rem 2rem;
-  
-  } #information .notification {
+
+  } #information > select {
+
+    background-color: var(--background);
+    color: var(--foreground);
+    text-shadow: var(--white) 1px 1px 0.1rem;
+    box-shadow: var(--background) 2px 2px 1rem;
+
+    padding: 0.2rem 1rem 0.2rem 1.5rem;
+
+    text-align: center;
+
+    border: none;
+    border-radius: 1rem;
+ 
+  } #information > .notification {
 
     background-color: var(--background);
     color: var(--foreground);
@@ -323,6 +337,11 @@ body {
     display: flex;
     flex-direction: column;
 
+    } #pallete .rgb {
+
+      background-color: inherit;
+      padding: 0;
+
   } #pallete .part {
 
     display: flex;
@@ -341,12 +360,11 @@ body {
       text-align: center;
       font-size: 1.15rem;
       text-shadow: var(--black) 1px 4px 1rem;
-
+      
   } #pallete .colour {
 
     width: 1.5rem; height: 1.5rem;
     margin: 0 0.25rem 0.25rem 0;
-    border-radius: .20rem;
     display: inline-block;
     box-shadow: var(--black) 1px 4px 1rem;
 

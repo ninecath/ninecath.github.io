@@ -580,7 +580,7 @@ r( async () => { // IIFE to avoid globals
   }
 
   // Apply a colour of a pallete.
-  const selectColour = (elementName, isCtrl = false, isElement = false) => {
+  const selectColour = (elementName, isCtrl = false, isElement = false, definiteChoice = false) => {
 
     let element;
 
@@ -597,13 +597,17 @@ r( async () => { // IIFE to avoid globals
       element = g(elementName)
     } else element = elementName;
 
-    if (element.classList.contains('selectedColour')) cleanOthers();
+    if (element.classList.contains('selectedColour') && !definiteChoice) cleanOthers();
     else {
 
       cleanOthers()
 
       element.classList.add('selectedColour')
-      localStorage['data-colour'] = element.getAttribute('data-colour')
+      // If the element is RGB
+      if (element.value)
+        localStorage['data-colour'] = element.value
+      else
+        localStorage['data-colour'] = element.getAttribute('data-colour');
 
     }
 
@@ -674,17 +678,17 @@ r( async () => { // IIFE to avoid globals
     }
 
     // Apply the first (or last used) theme to the whole page.
-    const updateTheme = (theme, themeName = localStorage['lastTheme'], remove = false, defaultThemeName = 'arcoiris') => {
+    const updateTheme = (theme, themeName = localStorage['lastTheme'], remove = false) => {
 
       // If none was saved locally before.
       if (themeName) theme = theme[themeName];
-      else theme = theme[defaultThemeName];
+      else           theme = theme['arcoiris']; // Default theme name.
 
       // Update values on screen and remotelly.
       localStorage['lastTheme'] = themeName
-      n('themesList')[0].value = themeName
+      n('themesList')[0].value  = themeName
       
-      // 3 for the next 3 styles that are added...
+      // Remove the previous rule CSS for the previous theme.
       if (remove) document.styleSheets[1].deleteRule(0);
 
       // Add colours RGB parameters to pallete picker.
@@ -804,8 +808,14 @@ r( async () => { // IIFE to avoid globals
 
 
     // Add events for colours to pick.
-    for (const item of c('colour'))
-      item.addEventListener( 'click', () => selectColour(item, undefined, true));
+    for (const item of c('colour')) {
+      item.addEventListener( 'change', () => selectColour(item, undefined, true, true) );
+      item.addEventListener( 'click', () => selectColour(item, undefined, true, true) );
+      item.addEventListener( 'contextmenu', e => {
+        e.preventDefault()
+        selectColour(item, undefined, true)
+      });
+    }
     // Apply theme to the page.
     updateTheme(json.themes);
 
