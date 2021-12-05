@@ -210,7 +210,7 @@ r( async () => { // IIFE to avoid globals
 
   /* To update the terminal output
   // @type{function(HTMLElement, HTMLElement): undefined} */
-  const updateTerminalOutput = (block, output = g('output')) => {
+  const updateTerminalOutput = (block = g('block'), output = g('output')) => {
 
     // Reset the output to nothing.
     output.value = ''
@@ -341,6 +341,10 @@ r( async () => { // IIFE to avoid globals
 
     // Remove first empty lines and last empty lines.
     output.value = output.value.replace(new RegExp('^\n*|\n+$', 'g'), '')
+
+    // Add credits if there is any without trailed spaces of the right.
+    const commentArt = n('commentArt')[0].value.replace(new RegExp(' +$', 'gm'), '')
+    if (commentArt) output.value = '# ' + commentArt.replace(new RegExp('^ +'), '') + '\n' + output.value
 
   }
 
@@ -494,7 +498,7 @@ r( async () => { // IIFE to avoid globals
       applyItemColour(column, row);
 
     // Pass the new text to the output block.
-    updateTerminalOutput(block)
+    updateTerminalOutput()
 
   }
 
@@ -619,9 +623,11 @@ r( async () => { // IIFE to avoid globals
 
       items.forEach( item => localStorage[item] = n(item)[0].value)
 
-      const mainBlock = new Block(g('main'), localStorage['blockHeight'], localStorage['blockWidth'])
+      const mainBlock = new Block(c('block')[0], localStorage['blockHeight'], localStorage['blockWidth'])
             mainBlock.render()
-      updateTerminalOutput(g('block'))
+      updateTerminalOutput()
+
+      if (!remove) g('block').children[0].children[0].focus();
 
     }
 
@@ -668,11 +674,19 @@ r( async () => { // IIFE to avoid globals
     }
 
     // Apply the first (or last used) theme to the whole page.
-    const updateTheme = (theme, remove = false) => {
+    const updateTheme = (theme, themeName = localStorage['lastTheme'], remove = false, defaultThemeName = 'arcoiris') => {
 
-      // 3 for the next 3 styles that are added...
-      if (remove) styleSheet.deleteRule(0);
+      // If none was saved locally before.
+      if (themeName) theme = theme[themeName];
+      else theme = theme[defaultThemeName];
+
+      // Update values on screen and remotelly.
+      localStorage['lastTheme'] = themeName
+      n('themesList')[0].value = themeName
       
+      // 3 for the next 3 styles that are added...
+      if (remove) document.styleSheets[1].deleteRule(0);
+
       // Add colours RGB parameters to pallete picker.
       Object.keys(coloursNames).forEach( item => {
         g(item).setAttribute( 'data-colour', item)
@@ -742,12 +756,58 @@ r( async () => { // IIFE to avoid globals
       })
     });
 
+    // Update when the name of the art changes.
+    const delay = ms => new Promise(res => setTimeout(res, ms));
+    [ 'nameArt' ].forEach( item => {
+      n(item)[0].addEventListener( 'keydown', async e => {
+        if (e.key === 'c' && e.ctrlKey) {
+
+          // Get numbers and input from artName
+          let text = g('output').value.split('\n')
+          if (text[0][0] === "#") text.shift(); // If there is the comment/credits at the first line, remove it.
+          text = (
+              e.explicitOriginalTarget.value.replace(new RegExp(' +$', 'gm'), '')
+            + ' ' + Math.max(...(text.map(el => el.length))) // Max columns of the ASCII art
+            + ' ' + text.length); // Rows of the ASCII art
+
+          // Write to clipboard
+          navigator.clipboard.writeText(text)
+
+          // Notification
+          const container = g('information')
+          container.insertAdjacentHTML( 'beforeend', `
+            <div class="notification">
+              Added <span class="copied">${text}</span> to the clipboard
+            </div>
+          ` )
+          const notification = c('notification')[c('notification').length - 1]
+          await delay(1000)
+          notification.classList.add('leave')
+          await delay(1000)
+          notification.remove()
+
+        }
+      })
+
+    });
+
+    // Update when the credits changes to the output.
+    [ 'commentArt' ].forEach( item => {
+      n(item)[0].addEventListener( 'keyup', () => updateTerminalOutput() )
+    });
+
+    // Add all themes for the selection.
+    Object.keys(json.themes).forEach( item => {
+      n('themesList')[0].insertAdjacentHTML( 'beforeend', `<option value="${item}">${item}</option>` )
+    });
+    n('themesList')[0].addEventListener( 'change', e =>  updateTheme(json.themes, e.explicitOriginalTarget.value, true) );
+
+
     // Add events for colours to pick.
     for (const item of c('colour'))
       item.addEventListener( 'click', () => selectColour(item, undefined, true));
-
     // Apply theme to the page.
-    updateTheme(json.themes['Qualia'])
+    updateTheme(json.themes);
 
     // Update style of the items.
     updateItemStyle(styleKeys)

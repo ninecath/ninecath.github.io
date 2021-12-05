@@ -1,5 +1,5 @@
 /* Body of the page, grid used for styling.
- * <> */
+ * <null> */
 
 body {
 
@@ -14,176 +14,271 @@ body {
     "sidebar information information"
     "sidebar main main"
     "sidebar pallete pallete";
-}
 
-#sidebar {
-  grid-area: sidebar;
+  } #sidebar {
 
-  border-right: 2px solid var(--red);
-  background-color: var(--background);
-  box-shadow: var(--black) 1px 4px 1rem;
+    grid-area: sidebar;
 
-  color: var(--foreground);
-}
-#main {
-  grid-area: main;
-  display: flex;
-  flex-direction: row;
+    border-right: 2px solid var(--red);
+    background-color: var(--background);
+    box-shadow: var(--black) 1px 4px 1rem;
 
-  align-items: center;
-  justify-content: center;
+    color: var(--foreground);
 
-  } #main > #output {
+    display: grid;
+    grid-template-rows: 1fr 1fr;
+    gap: 0px 0px;
+    grid-template-areas:
+      "options"
+      "information";
 
-    margin-right: 2.5rem;
+    } #sidebar > section:nth-child(1) { grid-area: "options";
+    } #sidebar > section:nth-child(2) { grid-area: "information"; }
 
-  } #main > #block {
+  #main {
+    grid-area: main;
+    display: grid;
 
-    margin-left: 2.5rem;
+    grid-template-columns: 1fr 1fr;
+    gap: 0px 0px;
+    grid-template-areas:
+      "output block";
 
-  }
+    } #main > .output { grid-area: "output"; max-width: 100%;
+    } #main > .block { grid-area: "block"; }
 
-#pallete {
-  grid-area: pallete;
-  
-  display: flex;
-  flex-direction: column;
+  #pallete {
+    grid-area: pallete;
+    display: flex;
+    flex-direction: column;
 
-  align-items: center;
-  justify-content: center;
-  
-}
-#information {
-  grid-area: information;
-}
+    align-items: center;
+    justify-content: center;
+
+  } #information {
+    grid-area: information;
 
 /* Background of the theme.
  * <theme.Image.Path> */
 
-#background {
+} #background {
 
   background-image: var(--background-path);
   width: 100%; height: 100%;
   position: absolute;
   z-index: -1;
 
-} #background::after {
+  } #background::after {
 
-  content: '';
-  position: absolute;
-  width: 100%; height: 100%;
+    content: '';
+    position: absolute;
+    width: 100%; height: 100%;
 
-  pointer-events: none;
-  backdrop-filter: blur(8px);
+    pointer-events: none;
+    backdrop-filter: blur(15px);
 
-}
+/* Information for notifications and theming */
+/* etc */
+
+} #information {
+  
+  position: relative;
+  padding: 1rem 2rem;
+  
+  } #information .notification {
+
+    background-color: var(--background);
+    color: var(--foreground);
+    box-shadow: var(--black) 2px 2px 1rem;
+
+    position: absolute; left: 50%;
+    transform: translateX(-50%);
+    
+    padding: 0.15rem 1.25rem;
+    border-radius: 1rem;
+    font-size: 0.75rem;
+    font-weight: bold;
+
+    animation: come-in 500ms normal forwards ease-in-out 1;
+
+    cursor: default;
+    user-select: none;
+
+    } #information .notification.leave {
+
+      animation: come-out 500ms normal forwards ease-in-out 1;
+
+    } #information .notification > span {
+
+      color: var(--blue);
+
+    } #information .notification::after {
+
+      content: '';
+      width: 0.75rem; height: 0.75rem;
+      box-sizing: border-box;
+
+      background-color: var(--background);
+      box-shadow: var(--black) 2px 2px 1rem;
+
+      position: absolute; top: -0.7rem; left: 50%;
+      transform: rotate(-45deg) translateX(-50%);
+
+    } @keyframes come-in {
+        from { opacity: 0; }
+        to { opacity: 1; }
+    } @keyframes come-out {
+        from { opacity: 1; }
+        to { opacity: 0; display: none; }
 
 /* Block and output for the input type text items to type.
  * Container: #main */
 
 /* <null> */
 
-#output {
+} #main {
 
-  display: flex;
-  position: relative;
+  } #main > section {
 
-  border: 2px solid var(--green);
-  box-shadow: var(--black) 2px 4px 1.5rem;
-  font-family: var(--font-name);
-  color: var(--background);
-  background-color: var(--foreground);
+    overflow-x: scroll;
+    padding: 1rem 1rem;
+    max-height: 100%;
+  
+  } #main .block {
 
-  height: 17.5rem; width: 17.5rem;
+    display: flex;
+    justify-content: center;
+    align-items: center;
 
-  } #output[disabled] {
-
-    opacity: 1;
-
-  } #output:focus {
-
-    outline: none;
-
-  } #output::selection {
-
-    background-color: var(--green);
-
-  }
-
-/* <blockWidth/blockHeight> */
-
-#block {
-
-  display: flex;
-  flex-direction: row;
-  width: fit-content; height: fit-content;
-  position: relative;
-
-  border: 2px solid var(--yellow);
-  box-shadow: var(--black) 2px 4px 1.5rem;
-
-  } #block::after {
-
-    position: absolute;
-    content: '';
-    width: 100%; height: 100%;
-    background-color: var(--background);
-    z-index: -1;
-
-  } #block .column {
+  } #main .output {
 
     display: flex;
     flex-direction: column;
+    justify-content: center;
+    align-items: center;
 
-  } #block .column-item {
+    position: relative;
 
-    text-align: center;
-    background: transparent;
-    border: 1px solid transparent;
-    color: var(--foreground);
-    caret-color: transparent;
-    font-family: var(--font-name);
+    } #main .output input {
 
-    } #block .column-item::selection {
+      border: none;
+      border-radius: 1rem;
+      outline: none;
 
-      background-color: transparent;
+      text-align: center;
+      font-weight: bold;
 
-  } #block .column-item:focus {
+      opacity: 0.75;
+      color: var(--black);
+      background-color: var(--white-bright);
+      box-shadow: var(--black) 2px 2px 1rem;
+      text-shadow: var(--black) 1px 4px 1rem;
 
-    outline: none!important;
-    border: 1px solid var(--yellow)!important;
+      width: 100%;
+      padding: 0.1rem 0.5rem;
+      margin: 1rem 0;
+
+      } #main .output input::selection {
+
+        background-color: var(--black);
+        color: var(--white);
+
+    } #main #output {
+
+      border: 2px solid var(--green);
+      box-shadow: var(--black) 2px 4px 1.5rem;
+      font-family: var(--font-name);
+      color: var(--background);
+      background-color: var(--foreground);
+
+      height: 17.5rem; width: 17.5rem;
+
+      } #output[disabled] {
+
+        opacity: 1;
+
+      } #output:focus {
+
+        outline: none;
+
+      } #output::selection {
+
+        background-color: var(--green);
+
+/* <blockWidth/blockHeight> */
+
+  } #main #block {
+
+    display: flex;
+    flex-direction: row;
+    width: fit-content; height: fit-content;
+    position: relative;
+
+    border: 2px solid var(--yellow);
+    box-shadow: var(--black) 2px 4px 1.5rem;
+
+    } #block::after {
+
+      position: absolute;
+      content: '';
+      width: 100%; height: 100%;
+      background-color: var(--background);
+      z-index: -1;
+
+    } #block .column {
+
+      display: flex;
+      flex-direction: column;
+
+    } #block .column-item {
+
+      text-align: center;
+      background: transparent;
+      border: 1px solid transparent;
+      color: var(--foreground);
+      caret-color: transparent;
+      font-family: var(--font-name);
+
+      } #block .column-item::selection {
+
+        background-color: transparent;
+
+    } #block .column-item:focus {
+
+      outline: none!important;
+      border: 1px solid var(--yellow)!important;
 
 
-  } #block .column-item.selected {
+    } #block .column-item.selected {
 
-    border: 1px solid var(--yellow-bright);
+      border: 1px solid var(--yellow-bright);
 
-  }
+    }
 
-  #block .column-item[data-fg="black"] { color: var(--black); }
-  #block .column-item[data-fg="blackBright"] { color: var(--black-bright); }
-  #block .column-item[data-fg="red"] { color: var(--red); }
-  #block .column-item[data-fg="redBright"] { color: var(--red-bright); }
-  #block .column-item[data-fg="green"] { color: var(--green); }
-  #block .column-item[data-fg="greenBright"] { color: var(--green-bright); }
-  #block .column-item[data-fg="yellow"] { color: var(--yellow); }
-  #block .column-item[data-fg="yellowBright"] { color: var(--yellow-bright); }
-  #block .column-item[data-fg="blue"] { color: var(--blue); }
-  #block .column-item[data-fg="blueBright"] { color: var(--blue-bright); }
-  #block .column-item[data-fg="blue"] { color: var(--blue); }
-  #block .column-item[data-fg="blueBright"] { color: var(--blue-bright); }
-  #block .column-item[data-fg="purple"] { color: var(--purple); }
-  #block .column-item[data-fg="purpleBright"] { color: var(--purple-bright); }
-  #block .column-item[data-fg="cyan"] { color: var(--cyan); }
-  #block .column-item[data-fg="cyanBright"] { color: var(--cyan-bright); }
-  #block .column-item[data-fg="white"] { color: var(--white); }
-  #block .column-item[data-fg="whiteBright"] { color: var(--white-bright); }
+    #block .column-item[data-fg="black"] { color: var(--black); }
+    #block .column-item[data-fg="blackBright"] { color: var(--black-bright); }
+    #block .column-item[data-fg="red"] { color: var(--red); }
+    #block .column-item[data-fg="redBright"] { color: var(--red-bright); }
+    #block .column-item[data-fg="green"] { color: var(--green); }
+    #block .column-item[data-fg="greenBright"] { color: var(--green-bright); }
+    #block .column-item[data-fg="yellow"] { color: var(--yellow); }
+    #block .column-item[data-fg="yellowBright"] { color: var(--yellow-bright); }
+    #block .column-item[data-fg="blue"] { color: var(--blue); }
+    #block .column-item[data-fg="blueBright"] { color: var(--blue-bright); }
+    #block .column-item[data-fg="blue"] { color: var(--blue); }
+    #block .column-item[data-fg="blueBright"] { color: var(--blue-bright); }
+    #block .column-item[data-fg="purple"] { color: var(--purple); }
+    #block .column-item[data-fg="purpleBright"] { color: var(--purple-bright); }
+    #block .column-item[data-fg="cyan"] { color: var(--cyan); }
+    #block .column-item[data-fg="cyanBright"] { color: var(--cyan-bright); }
+    #block .column-item[data-fg="white"] { color: var(--white); }
+    #block .column-item[data-fg="whiteBright"] { color: var(--white-bright); }
 
-  #block .column-item[data-bold="true"] { font-weight: bold; }
-  #block .column-item[data-underline="true"] { text-decoration: underline; }
-  #block .column-item[data-italic="true"] { font-style: italic; }
+    #block .column-item[data-bold="true"] { font-weight: bold; }
+    #block .column-item[data-underline="true"] { text-decoration: underline; }
+    #block .column-item[data-italic="true"] { font-style: italic; }
 
-/* Pallete */
+/* Pallete for RGB and 4-bit colours */
 
 #pallete {
 
@@ -368,35 +463,52 @@ body {
 
     background-color: var(--red);
 
-  } #sidebar > section {
+  } #sidebar > section:nth-child(2) {
 
     display: flex;
     justify-content: center;
     align-items: center;
     flex-direction: column;
 
-    } #sidebar > section > span {
+  } #sidebar > section > .separator {
+
+    display: block;
+    width: 75%; height: 2px;
+    background-color: var(--black-bright);
+    opacity: 0.75;
+
+  } #sidebar > section a {
+
+    color: var(--foreground);
+    font-style: italic;
+    
+    } #sidebar > section a:hover {
+
+      color: var(--yellow-bright);
+
+  } #sidebar > section > section {
+
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    flex-direction: column;
+
+    } #sidebar > section > section > span {
 
       color: var(--red);
       text-align: center;
       margin-bottom: 0.5rem;
       font-weight: bold;
 
-    } #sidebar > section > label {
+    } #sidebar > section > section > label {
 
       font-size: 0.9rem;
 
-      } #sidebar > section > section > label > input {
+      } #sidebar > section > section > section > label > input {
 
         margin-right: 0.5rem;
 
-      } #sidebar > section > section > label > input[type="checkbox"] {
-
-        color: red;
-        background-color: red;
-        border: 1px solid red;
-
-      } #sidebar > section > section > label > input[type="number"] {
+      } #sidebar > section > section > section > label > input[type="number"] {
 
         color: var(--foreground);
         background-color: transparent;
@@ -407,18 +519,18 @@ body {
 
         border-radius: 0.15rem;
 
-        } #sidebar > section > section > label > input[type="number"]:focus {
+        } #sidebar > section > section > section > label > input[type="number"]:focus {
 
           outline: none;
           border-color: var(--white);
 
-        } #sidebar > section > section > label > input[type="number"]::-webkit-outer-spin-button,
-          #sidebar > section > section > label > input[type="number"]::-webkit-inner-spin-button {
+        } #sidebar > section > section > section > label > input[type="number"]::-webkit-outer-spin-button,
+          #sidebar > section > section > section > label > input[type="number"]::-webkit-inner-spin-button {
 
           -webkit-appearance: none;
           margin: 0;
 
-    } #sidebar > section > section {
+    } #sidebar > section > section > section {
 
       display: flex;
       flex-direction: column;

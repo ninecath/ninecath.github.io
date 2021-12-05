@@ -31,40 +31,58 @@
 
   <!-- Container for the of #block -->
   <section id="main">
-    <textarea id="output"></textarea>
+    <section class="output">
+      <div><input type="text" placeholder="Name of your art" value="example" name="nameArt"></div>
+      <textarea id="output"></textarea>
+      <div><input type="text" placeholder="Credits and miscellaneous" value="" name="commentArt"></div>
+    </section>
+    <section class="block"></section>
   </section>
 
   <!-- Set options of the system -->
   <section id="sidebar">
-    <!-- Automatic update (marked with a bright golden border) --->
-    <section class="sidebar-automatic">
-      <span>Automatic</span>
-      <section>
-        <label><input type="checkbox" name="infiniteMoving">Scroll moving with arrow keys</label>
-        <label><input type="checkbox" name="moveAfterInput">Move after input of character</label>
-        <label><input type="checkbox" name="isBackground">Background color</label>
-        <label><input type="checkbox" name="isBold">Bold</label>
-        <label><input type="checkbox" name="isUnderline">Underline</label>
-        <label><input type="checkbox" name="isItalic">Italic</label>
+    <section>
+      <!-- Automatic update (marked with a bright golden border) --->
+      <section class="sidebar-automatic">
+        <span>Automatic</span>
+        <section>
+          <label><input type="checkbox" name="infiniteMoving">Scroll moving with arrow keys</label>
+          <label><input type="checkbox" name="moveAfterInput">Move after input of character</label>
+          <label><input type="checkbox" name="isBackground">Background color</label>
+          <label><input type="checkbox" name="isBold">Bold</label>
+          <label><input type="checkbox" name="isUnderline">Underline</label>
+          <label><input type="checkbox" name="isItalic">Italic</label>
+        </section>
+      </section>
+      <!-- Need to press ENTER to update --->
+      <section class="sidebar-manual">
+        <span>Manual</span>
+        <section>
+          <label><input type="number" min="3" name="blockHeight">Number of columns.</label>
+          <label><input type="number" min="3" name="blockWidth">Number of rows.</label>
+          <label><input type="number" min="0" max="1" name="blockOpacity">Opacity of the input block.</label>
+          <label><input type="number" min="0" name="blockBlur">Blur of the input block.</label>
+          <label><input type="number" min="5" name="fontSize">Font size of the block input and output.</label>
+          <label><input type="number" min="0.25" name="itemHeight">Height scale of character of the block input.</label>
+          <label><input type="number" min="0.25" name="itemWidth">Width scale of character of the block input.</label>
+        </section>
       </section>
     </section>
-    <!-- Need to press ENTER to update --->
-    <section class="sidebar-manual">
-      <span>Manual</span>
-      <section>
-        <label><input type="number" min="3" name="blockHeight">Number of columns.</label>
-        <label><input type="number" min="3" name="blockWidth">Number of rows.</label>
-        <label><input type="number" min="0" max="1" name="blockOpacity">Opacity of the input block.</label>
-        <label><input type="number" min="0" name="blockBlur">Blur of the input block.</label>
-        <label><input type="number" min="5" name="fontSize">Font size of the block input and output.</label>
-        <label><input type="number" min="0.25" name="itemHeight">Height scale of character of the block input.</label>
-        <label><input type="number" min="0.25" name="itemWidth">Width scale of character of the block input.</label>
-      </section>
+    <section>
+      <span class="separator"></span>
+      <p><b>ascii-creator</b> is a website made for the creation of ASCII arts, more specifically for the program <b><a href="https://github.com/ninecath/nincat/">nincat</a></b>, which displays ASCII art randomly in the terminal.</p>
+      <p>To pick a color, you can either click on a block of the pallete at the bottom, or in your keyboard top keys (1-8), with CTRL enabled it chooses the bright colour.</p>
+      <div>
+        <a href="https://github.com/ninecath/ninecath.github.io">v1.0.0</a> - <a href="https://github.com/ninecath/ninecath.github.io/blob/main/LICENSE">A-GPL 3</a>
+      </div>
     </section>
   </section>
 
   <!-- Information of the creator/maintainer -->
-  <section id="information"></section>
+  <section id="information">
+    <!--    <div class="notification leave">Added <span class="copied">love 25 45</span> to the clipboard</div>-->
+    <select name="themesList"></select>
+  </section>
 
   <!-- Select colours --->
   <section id="pallete">

@@ -18,7 +18,7 @@
   ],
   "themes": {
     "arcoiris": {
-      "Type": "Dark",
+      "Type": "dark",
       "Author": "BeyondMagic - J. Farias <koetemagie@gmail.com>",
       "Link": "https://github.com/BeyondMagic/arcoiris-nvim-theme",
       "Image": {
@@ -42,16 +42,16 @@
       "cyanBright":   "#519FD1",
       "white":        "#FDFCFD",
       "whiteBright":  "#FFFFFF",
-      "background":   "#101010",
+      "background":   "#000000",
       "foreground":   "#FDFCFD"
     },
     "Qualia": {
-      "Type": "Dark",
+      "Type": "dark",
       "Author": "Isaac W Hanson <isaac@starlig.ht>",
       "Link": "https://github.com/arizonahanson/base16-qualia-scheme",
       "Image": {
-        "Artist": "Kanekiru <https://www.deviantart.com/kanekiru>",
-        "Path": "arcoiris/Ignite.png"
+        "Artist": "Aenami <https://www.artstation.com/aenamiart>",
+        "Path": "Qualia/Sky Mirror.jpg"
       },
       "FontName": "NFiraCode",
       "black":        "#101010",
