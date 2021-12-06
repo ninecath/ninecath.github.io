@@ -86,11 +86,11 @@ r( async () => { // IIFE to avoid globals
 
           // Set old value from localStorage for this item.
           if (localStorage[`item-${i}-${j}`]) item.value = localStorage[`item-${i}-${j}`];
-          if (localStorage[`item-fg-${i}-${j}`]) applyColour(block, i, j, 'fg', localStorage[`item-fg-${i}-${j}`]);
-          if (localStorage[`item-bg-${i}-${j}`]) applyColour(block, i, j, 'bg', localStorage[`item-bg-${i}-${j}`])
-          if (localStorage[`item-bold-${i}-${j}`]) applyEffect(block, i, j, 'bold', localStorage[`item-bold-${i}-${j}`]);
-          if (localStorage[`item-underline-${i}-${j}`]) applyEffect(block, i, j, 'underline', localStorage[`item-underline-${i}-${j}`])
-          if (localStorage[`item-italic-${i}-${j}`]) applyEffect(block, i, j, 'italic', localStorage[`item-italic-${i}-${j}`])
+          if (localStorage[`item-fg-${i}-${j}`]) applyColour(block, i, j, ['fg'], [localStorage[`item-fg-${i}-${j}`]]);
+          if (localStorage[`item-bg-${i}-${j}`]) applyColour(block, i, j, ['bg'], [localStorage[`item-bg-${i}-${j}`]])
+          if (localStorage[`item-bold-${i}-${j}`]) applyEffect(block, i, j, ['bold'], [localStorage[`item-bold-${i}-${j}`]]);
+          if (localStorage[`item-underline-${i}-${j}`]) applyEffect(block, i, j, ['underline'], [localStorage[`item-underline-${i}-${j}`]])
+          if (localStorage[`item-italic-${i}-${j}`]) applyEffect(block, i, j, ['italic'], [localStorage[`item-italic-${i}-${j}`]])
 
           // Events for items
           item.addEventListener('keydown', e => {
@@ -98,43 +98,35 @@ r( async () => { // IIFE to avoid globals
             switch (e.code) {
               // Apply pallete colours.
               case 'Digit1':
-                if (!e.shiftKey)
-                  selectColour('black', e.ctrlKey)
+                if (!e.shiftKey) selectColour('black', e.ctrlKey)
                 else runText(i, j, e.key)
                 break;
               case 'Digit2':
-                if (!e.shiftKey)
-                  selectColour('red', e.ctrlKey)
+                if (!e.shiftKey) selectColour('red', e.ctrlKey)
                 else runText(i, j, e.key)
                 break;
               case 'Digit3':
-                if (!e.shiftKey)
-                  selectColour('green', e.ctrlKey)
+                if (!e.shiftKey) selectColour('green', e.ctrlKey)
                 else runText(i, j, e.key)
                 break;
               case 'Digit4':
-                if (!e.shiftKey)
-                  selectColour('yellow', e.ctrlKey)
+                if (!e.shiftKey) selectColour('yellow', e.ctrlKey)
                 else runText(i, j, e.key)
                 break;
               case 'Digit5':
-                if (!e.shiftKey)
-                  selectColour('blue', e.ctrlKey)
+                if (!e.shiftKey) selectColour('blue', e.ctrlKey)
                 else runText(i, j, e.key)
                 break;
               case 'Digit6':
-                if (!e.shiftKey)
-                  selectColour('purple', e.ctrlKey)
+                if (!e.shiftKey) selectColour('purple', e.ctrlKey)
                 else runText(i, j, e.key)
                 break;
               case 'Digit7':
-                if (!e.shiftKey)
-                  selectColour('cyan', e.ctrlKey)
+                if (!e.shiftKey) selectColour('cyan', e.ctrlKey)
                 else runText(i, j, e.key)
                 break;
               case 'Digit8':
-                if (!e.shiftKey)
-                  selectColour('white', e.ctrlKey)
+                if (!e.shiftKey) selectColour('white', e.ctrlKey)
                 else runText(i, j, e.key)
                 break;
               // Main keys.
@@ -389,33 +381,37 @@ r( async () => { // IIFE to avoid globals
   }
   
   // Apply effect (bold, italic, underline) to an element.
-  const applyEffect = (block, column, row, type = '', isEffect) => {
+  const applyEffect = (block, column, row, types = [''], isEffects = ['']) => {
 
     const item = block.children[column].children[row]
 
-    // Apply such effect.
-    if (isEffect === 'true') {
+    for (let i = 0; i < types.length; i++ ) {
 
-      item.setAttribute( `data-${type}`, isEffect );
-      localStorage[`item-${type}-${column}-${row}`] = true
+      // Apply such effect.
+      if (isEffects[i] === 'true') {
 
-    // Do not apply the effect/remove it.
-    } else {
+        item.setAttribute( `data-${types[i]}`, isEffects[i] );
+        localStorage[`item-${types[i]}-${column}-${row}`] = true
 
-      item.removeAttribute( `data-${type}` )
-      localStorage[`item-${type}-${column}-${row}`] = ''
+      // Do not apply the effect/remove it.
+      } else {
+
+        item.removeAttribute( `data-${types[i]}` )
+        localStorage[`item-${types[i]}-${column}-${row}`] = ''
+
+      }
 
     }
 
   }
   
   // Apply BG/FG colour to the item.
-  const applyColour = (block, column = 0, row = 0, type = '', colour = '') => {
+  const applyColour = (block, column = 0, row = 0, types = [''], colours = ['']) => {
 
     const item = block.children[column].children[row]
 
     // So that repeating is not excessive...
-    const addColourStyle = (element, typeItem = '') => {
+    const addColourStyle = (element, typeItem = '', colour = '') => {
 
       if (colour) {
 
@@ -442,12 +438,16 @@ r( async () => { // IIFE to avoid globals
 
     }
 
-    if (!type) {
+    for (let i = 0; i < types.length; i++) {
 
-      if (localStorage['isBackground'] === 'true') addColourStyle(item, 'bg');
-      else addColourStyle(item, 'fg');
+      if (!types[i]) {
 
-    } else addColourStyle(item, type);
+        if (localStorage['isBackground'] === 'true') addColourStyle(item, 'bg', colours[i]);
+        else                                         addColourStyle(item, 'fg', colours[i]);
+
+      } else addColourStyle(item, types[i], colours[i]);
+
+    }
 
   }
 
@@ -468,24 +468,16 @@ r( async () => { // IIFE to avoid globals
  
       // Get item from document.
       if (text !== 'Delete') {
-        applyColour(block, columnItem, rowItem, type, colour)
+        applyColour(block, columnItem, rowItem, [type], [colour])
         if (item.value !== ' ') {
-          applyEffect(block, columnItem, rowItem, 'bold', localStorage['isBold'])
-          applyEffect(block, columnItem, rowItem, 'italic', localStorage['isItalic'])
-          applyEffect(block, columnItem, rowItem, 'underline', localStorage['isUnderline'])
+          applyEffect(block, columnItem, rowItem, ['underline', 'italic', 'bold'], [localStorage['isBold'], localStorage['isItalic'], localStorage['isUnderline']])
         } else {
-          applyColour(block, columnItem, rowItem, 'fg', '')
-          applyEffect(block, columnItem, rowItem, 'bold', '')
-          applyEffect(block, columnItem, rowItem, 'italic', '')
-          applyEffect(block, columnItem, rowItem, 'underline', '')
+          applyColour(block, columnItem, rowItem, ['fg'], [''])
+          applyEffect(block, columnItem, rowItem, ['underline', 'italic', 'bold'], ['', '', ''])
         }
       } else {
-        // TODO: make applyColour accept two arrays containing the types and effects
-        applyColour(block, columnItem, rowItem, 'fg', '')
-        applyColour(block, columnItem, rowItem, 'bg', '')
-        applyEffect(block, columnItem, rowItem, 'bold', '')
-        applyEffect(block, columnItem, rowItem, 'italic', '')
-        applyEffect(block, columnItem, rowItem, 'underline', '')
+        applyColour(block, columnItem, rowItem, ['fg', 'bg'], ['', ''])
+        applyEffect(block, columnItem, rowItem, ['underline', 'italic', 'bold'], ['', '', ''])
         item.value = ' '
         localStorage[`item-${columnItem}-${rowItem}`] = ' '
         return
