@@ -772,8 +772,8 @@ r( async () => { // IIFE to avoid globals
           if (text[0][0] === "#") text.shift(); // If there is the comment/credits at the first line, remove it.
           text = (
               e.explicitOriginalTarget.value.replace(new RegExp(' +$', 'gm'), '')
-            + ' ' + Math.max(...(text.map(el => el.length))) // Max columns of the ASCII art
-            + ' ' + text.length); // Rows of the ASCII art
+            + ' ' + text.length // Rows of the ASCII art
+            + ' ' + Math.max(...(text.map(el => el.length))) ); // Max columns of the ASCII art
 
           // Write to clipboard
           navigator.clipboard.writeText(text)
