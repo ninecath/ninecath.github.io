@@ -352,11 +352,8 @@ r( async () => { // IIFE to avoid globals
   // Remove previous elements that were selected
   const removeSelected = block => {
 
-    for (const item of selectedItems) {
-
-      block.children[item[0]].children[item[1]].classList.remove('selected')
-
-    }
+    for (const item of selectedItems)
+      block.children[item[0]].children[item[1]].classList.remove('selected');
 
     selectedItems = []
 
@@ -463,12 +460,25 @@ r( async () => { // IIFE to avoid globals
 
       const item = block.children[columnItem].children[rowItem]
 
+      // Apply text.
+      if (text !== undefined) {
+        item.value = text
+        localStorage[`item-${columnItem}-${rowItem}`] = text
+      }
+ 
       // Get item from document.
       if (text !== 'Delete') {
         applyColour(block, columnItem, rowItem, type, colour)
-        applyEffect(block, columnItem, rowItem, 'bold', localStorage['isBold'])
-        applyEffect(block, columnItem, rowItem, 'italic', localStorage['isItalic'])
-        applyEffect(block, columnItem, rowItem, 'underline', localStorage['isUnderline'])
+        if (item.value !== ' ') {
+          applyEffect(block, columnItem, rowItem, 'bold', localStorage['isBold'])
+          applyEffect(block, columnItem, rowItem, 'italic', localStorage['isItalic'])
+          applyEffect(block, columnItem, rowItem, 'underline', localStorage['isUnderline'])
+        } else {
+          applyColour(block, columnItem, rowItem, 'fg', '')
+          applyEffect(block, columnItem, rowItem, 'bold', '')
+          applyEffect(block, columnItem, rowItem, 'italic', '')
+          applyEffect(block, columnItem, rowItem, 'underline', '')
+        }
       } else {
         // TODO: make applyColour accept two arrays containing the types and effects
         applyColour(block, columnItem, rowItem, 'fg', '')
@@ -479,12 +489,6 @@ r( async () => { // IIFE to avoid globals
         item.value = ' '
         localStorage[`item-${columnItem}-${rowItem}`] = ' '
         return
-      }
-
-      // Apply text.
-      if (text !== undefined) {
-        item.value = text
-        localStorage[`item-${columnItem}-${rowItem}`] = text
       }
 
     }

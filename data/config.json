@@ -4,7 +4,7 @@
   "fontSize": 14,
   "itemHeight": 1,
   "itemWidth": 0.6,
-  "blockOpacity": 95,
+  "blockOpacity": 0.8,
   "blockBlur": 5,
   "infiniteMoving": true,
   "moveAfterInput": true,
