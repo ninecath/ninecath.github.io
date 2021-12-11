@@ -10,6 +10,8 @@ let button_down = 0;
  * Initialize localStorage
  * */
 
+var block;
+var output;
 var selectedItems = []
 var coloursNames = {
   'black': '', 'blackBright': '', 'red': '', 'redBright': '', 'green': '', 'greenBright': '',
@@ -34,20 +36,26 @@ r( async () => { // IIFE to avoid globals
 
     constructor (container, columns = 1, rows = 1) {
 
-      this._columns   = parseInt(columns)
-      this._rows      = parseInt(rows)
-      this._container = this.create(container)
+      this._columns    = parseInt(columns)
+      this._rows       = parseInt(rows)
+      this._container  = this.create(container)
 
     }
 
     create (container) {
 
-      container.insertAdjacentHTML( 'beforeend', this.item('block') )
+      container.insertAdjacentHTML( 'beforeend', this.elementHTML('block') )
       return g('block')
 
     }
 
-    item (type = '', column = 0, row = 0) {
+    remove () {
+
+      this._container.remove()
+
+    }
+
+    elementHTML (type = '', column = 0, row = 0) { 
 
       switch (type) {
 
@@ -62,35 +70,217 @@ r( async () => { // IIFE to avoid globals
 
     }
 
-    render (block = this._container) {
+    move (direction = '', column = 0, row = 0, is_shifted = false) {
+
+      let oldColumn = column,
+          oldRow    = row
+
+      const is_infinite = localStorage['infiniteMoving'] === 'true'
+
+      switch (direction) {
+
+        case 'up':
+          if      (row-- ===  0 && is_infinite) row = this._rows - 1;
+          else if (row   === -1)                row = 0;
+          break;
+
+        case 'down':
+          if      (row++ === this._rows - 1 && is_infinite) row = 0;
+          else if (row   === this._rows)                    row = this._rows - 1;
+          break;
+
+        case 'right':
+          if      (column++ === this._columns - 1 && is_infinite) column = 0;
+          else if (column   === this._columns)                    column = this._columns - 1;
+          break;
+
+        case 'left':
+          if      (column-- ===  0 && is_infinite) column = this._columns - 1;
+          else if (column   === -1)                column = 0;
+          break;
+
+        case 'next':
+          if (column++ === this._columns - 1 && is_infinite) {
+            column = 0
+            row++
+          }
+          else if (column === this._columns) column = this._columns - 1;
+          if      (row    === this._rows)    row    = 0;
+
+      }
+
+      if (is_shifted) {
+
+        this.item( oldColumn, oldRow ).classList.add('selected')
+        selectedItems.push( [oldColumn, oldRow] )
+
+        this.item( column, row).classList.add('selected');
+        selectedItems.push( [column, row] )
+
+      }
+      else removeSelected(this._container);
+
+      this.item( column, row ).focus()
+
+    }
+
+    // Apply effect (bold, italic, underline) to an element.
+    effect (column, row, types = [''], effects = ['']) {
+
+      const item = this.item(column, row)
+
+      for ( let i = 0; i < types.length; i++ ) {
+
+        // Apply such effect.
+        if (effects[i] === 'true') {
+
+          item.setAttribute( `data-${types[i]}`, true );
+          localStorage[`item-${types[i]}-${column}-${row}`] = true
+
+        // Do not apply the effect/remove it.
+        } else {
+
+          item.removeAttribute( `data-${types[i]}` )
+          localStorage[`item-${types[i]}-${column}-${row}`] = ''
+
+        }
+
+      }
+
+    }
+
+    
+    // Apply BG/FG colour to the item.
+    colour (column = 0, row = 0, types = [''], colours = [''] ) {
+
+      const item = this.item(column, row)
+
+      // So that repeating is not excessive...
+      const add = (element, typeItem = '', colour = '') => {
+
+        if (colour) {
+
+          // Reset the colours set by # to normal one.
+          if   (typeItem === 'bg') item.style.backgroundColor = '';
+          else                     item.style.color = '';
+
+          // If the colour is hash and not built-in from theme.
+          if (colour[0] === '#') {
+            if   (typeItem === 'bg') item.style.backgroundColor = colour;
+            else                     item.style.color = colour;
+          }
+
+          element.setAttribute(`data-${typeItem}`, colour);
+
+        // Remove colour if there wasn't any selected.
+        } else {
+          if   (typeItem === 'bg') item.style.backgroundColor = '';
+          else                     item.style.color = '';
+          element.removeAttribute(`data-${typeItem}`);
+        }
+
+        localStorage[`item-${typeItem}-${column}-${row}`] = colour
+
+      }
+
+      for (let i = 0; i < types.length; i++) {
+
+        if ( !types[i] ) {
+
+          if (localStorage['isBackground'] === 'true') add(item, 'bg', colours[i]);
+          else                                         add(item, 'fg', colours[i]);
+
+        } else add(item, types[i], colours[i]);
+
+      }
+
+    }
+
+   
+    focus (column = 0, row = 0, text, type = undefined, colour = localStorage['data-colour'] ) {
+      
+      // Apply the colour for the item and text.
+      const applyItemColour = (columnItem = 0, rowItem = 0) => {
+
+        const item = this.item(columnItem, rowItem)
+
+        // Apply text.
+        if (text !== undefined) {
+          item.value = text
+          localStorage[`item-${columnItem}-${rowItem}`] = text
+        }
+
+        // Get item from document.
+        if (text !== 'Delete') {
+
+          block.colour(columnItem, rowItem, [type], [colour])
+
+          if (item.value !== ' ') {
+            block.effect( columnItem, rowItem, ['underline', 'italic', 'bold'], [localStorage['isBold'], localStorage['isItalic'], localStorage['isUnderline']] )
+          } else {
+            block.colour( columnItem, rowItem, ['fg'], [''])
+            block.effect( columnItem, rowItem, ['underline', 'italic', 'bold'], ['', '', ''] )
+          }
+        } else {
+          block.colour( columnItem, rowItem, ['fg', 'bg'], ['', ''] )
+          block.effect( columnItem, rowItem, ['underline', 'italic', 'bold'], ['', '', ''] )
+          item.value = ' '
+          localStorage[`item-${columnItem}-${rowItem}`] = ' '
+          return
+        }
+
+      }
+
+      // Loop throughout the selected items to apply the colour.
+      if (c('selected').length > 0)
+        for (const itemInf of selectedItems)
+          applyItemColour(itemInf[0], itemInf[1], text);
+      // If just one, just apply one (the current within input).
+      else
+        applyItemColour(column, row);
+
+      // Pass the new text to the output block.
+      output.update()
+
+    }
+
+
+    item (column = 0, row = 0) {
+
+      return this._container.children[column].children[row]
+
+    }
+
+    render () {
 
       const runText = (column, row, letter) => {
         // If it's only one letter
         if (letter.length === 1) {
-          inputFocus(column, row, letter)
-          if (localStorage['moveAfterInput'] === 'true') moveFocus('next', column, row);
+          block.focus(column, row, letter)
+          if (localStorage['moveAfterInput'] === 'true') this.move('next', column, row);
         }
       }
+
 
       for (let i = 0; i < this._columns; i++) {
 
         // Add column and select.
-        block.insertAdjacentHTML( 'beforeend', this.item('column', i) )
+        this._container.insertAdjacentHTML( 'beforeend', this.elementHTML('column', i) )
         const column = c('column')[i]
 
         for (let j = 0; j < this._rows; j++) {
 
           // Add item in column and select.
-          column.insertAdjacentHTML( 'beforeend', this.item('row', i, j) )
+          column.insertAdjacentHTML( 'beforeend', this.elementHTML('row', i, j) )
           const item = c('column')[i].children[j]
 
           // Set old value from localStorage for this item.
-          if (localStorage[`item-${i}-${j}`]) item.value = localStorage[`item-${i}-${j}`];
-          if (localStorage[`item-fg-${i}-${j}`]) applyColour(block, i, j, ['fg'], [localStorage[`item-fg-${i}-${j}`]]);
-          if (localStorage[`item-bg-${i}-${j}`]) applyColour(block, i, j, ['bg'], [localStorage[`item-bg-${i}-${j}`]])
-          if (localStorage[`item-bold-${i}-${j}`]) applyEffect(block, i, j, ['bold'], [localStorage[`item-bold-${i}-${j}`]]);
-          if (localStorage[`item-underline-${i}-${j}`]) applyEffect(block, i, j, ['underline'], [localStorage[`item-underline-${i}-${j}`]])
-          if (localStorage[`item-italic-${i}-${j}`]) applyEffect(block, i, j, ['italic'], [localStorage[`item-italic-${i}-${j}`]])
+          if (localStorage[`item-${i}-${j}`])           item.value = localStorage[`item-${i}-${j}`];
+          if (localStorage[`item-fg-${i}-${j}`])        block.colour(i, j, ['fg'], [localStorage[`item-fg-${i}-${j}`]]);
+          if (localStorage[`item-bg-${i}-${j}`])        block.colour(i, j, ['bg'], [localStorage[`item-bg-${i}-${j}`]]);
+          if (localStorage[`item-bold-${i}-${j}`])      block.effect(i, j, ['bold'], [localStorage[`item-bold-${i}-${j}`]]);
+          if (localStorage[`item-underline-${i}-${j}`]) block.effect(i, j, ['underline'], [localStorage[`item-underline-${i}-${j}`]]);
+          if (localStorage[`item-italic-${i}-${j}`])    block.effect(i, j, ['italic'], [localStorage[`item-italic-${i}-${j}`]]);
 
           // Events for items
           item.addEventListener('keydown', e => {
@@ -98,61 +288,61 @@ r( async () => { // IIFE to avoid globals
             switch (e.code) {
               // Apply pallete colours.
               case 'Digit1':
-                if (!e.shiftKey) selectColour('black', e.ctrlKey)
-                else runText(i, j, e.key)
+                if   (!e.shiftKey) selectColour('black', e.ctrlKey)
+                else               runText(i, j, e.key)
                 break;
               case 'Digit2':
-                if (!e.shiftKey) selectColour('red', e.ctrlKey)
-                else runText(i, j, e.key)
+                if   (!e.shiftKey) selectColour('red', e.ctrlKey)
+                else               runText(i, j, e.key)
                 break;
               case 'Digit3':
-                if (!e.shiftKey) selectColour('green', e.ctrlKey)
-                else runText(i, j, e.key)
+                if   (!e.shiftKey) selectColour('green', e.ctrlKey)
+                else               runText(i, j, e.key)
                 break;
               case 'Digit4':
-                if (!e.shiftKey) selectColour('yellow', e.ctrlKey)
-                else runText(i, j, e.key)
+                if   (!e.shiftKey) selectColour('yellow', e.ctrlKey)
+                else               runText(i, j, e.key)
                 break;
               case 'Digit5':
-                if (!e.shiftKey) selectColour('blue', e.ctrlKey)
-                else runText(i, j, e.key)
+                if   (!e.shiftKey) selectColour('blue', e.ctrlKey)
+                else               runText(i, j, e.key)
                 break;
               case 'Digit6':
-                if (!e.shiftKey) selectColour('purple', e.ctrlKey)
-                else runText(i, j, e.key)
+                if   (!e.shiftKey) selectColour('purple', e.ctrlKey)
+                else               runText(i, j, e.key)
                 break;
               case 'Digit7':
-                if (!e.shiftKey) selectColour('cyan', e.ctrlKey)
-                else runText(i, j, e.key)
+                if  (!e.shiftKey) selectColour('cyan', e.ctrlKey)
+                else              runText(i, j, e.key)
                 break;
               case 'Digit8':
-                if (!e.shiftKey) selectColour('white', e.ctrlKey)
-                else runText(i, j, e.key)
+                if   (!e.shiftKey) selectColour('white', e.ctrlKey)
+                else               runText(i, j, e.key)
                 break;
               // Main keys.
               case 'ArrowUp':
-                moveFocus('up', i, j, e.shiftKey)
+                this.move('up', i, j, e.shiftKey)
                 break;
               case 'ArrowDown':
-                moveFocus('down', i, j, e.shiftKey)
+                this.move('down', i, j, e.shiftKey)
                 break;
               case 'ArrowRight':
-                moveFocus('right', i, j, e.shiftKey)
+                this.move('right', i, j, e.shiftKey)
                 break;
               case 'ArrowLeft':
-                moveFocus('left', i, j, e.shiftKey)
+                this.move('left', i, j, e.shiftKey)
                 break;
               case 'Backspace':
               case 'Space':
-                inputFocus(i, j, ' ', 'fg', '')
+                this.focus(i, j, ' ', 'fg', '')
                 break;
               // Update colours.
               case 'Enter':
-                inputFocus(i, j, undefined)
+                this.focus(i, j, undefined)
                 break;
               // Delete all the information about the item.
               case 'Delete':
-                inputFocus(i, j, e.code)
+                this.focus(i, j, e.code)
                 break;
               default:
                 runText(i, j, e.key)
@@ -165,8 +355,8 @@ r( async () => { // IIFE to avoid globals
 
             e.preventDefault()
             button_down = 1
-            e.explicitOriginalTarget.focus()
-            if (!e.shiftKey) removeSelected(block);
+            e.target.focus()
+            if (!e.shiftKey) removeSelected(this._container);
             localStorage['firstColumn'] = i
             localStorage['firstRow']    = j
 
@@ -177,11 +367,11 @@ r( async () => { // IIFE to avoid globals
           item.addEventListener('mouseenter', e => {
 
             if (button_down)
-              selectFocus( block,
+              selectFocus( this._container,
                 localStorage['firstColumn'],
                 localStorage['firstRow'],
-                localStorage['secondColumn'] = e.explicitOriginalTarget.getAttribute('data-column'),
-                localStorage['secondRow'] = e.explicitOriginalTarget.getAttribute('data-row'),
+                localStorage['secondColumn'] = e.target.getAttribute('data-column'),
+                localStorage['secondRow']    = e.target.getAttribute('data-row'),
                 e.shiftKey);
 
           });
@@ -194,152 +384,154 @@ r( async () => { // IIFE to avoid globals
 
   }
 
+  class Output {
 
+    constructor () {
 
-  /*
-   * Functions and main methods.
-   */
-
-  /* To update the terminal output
-  // @type{function(HTMLElement, HTMLElement): undefined} */
-  const updateTerminalOutput = (block = g('block'), output = g('output')) => {
-
-    // Reset the output to nothing.
-    output.value = ''
-
-    // Transform the style effects to SHELL code..
-    /// @type{function(string boolean, string boolean, string boolean): string} */
-    const addStyles = (italic = '', bold = '', underline = '' ) => {
-
-      let valueStyles = ''
-     
-      // For bold.
-      if (bold === 'true') {
-        if (localStorage['output-last-bold'] !== 'true') valueStyles += '\\033[1m';
-        localStorage['output-last-bold'] = 'true'
-      } else {
-        if (localStorage['output-last-bold'] !== '') valueStyles += '\\033[22m';
-        localStorage['output-last-bold'] = ''
-      }
-
-      // For italic.
-      if (italic === 'true') {
-        if (localStorage['output-last-italic'] !== 'true') valueStyles += '\\033[3m';
-        localStorage['output-last-italic'] = 'true'
-      } else {
-        if (localStorage['output-last-italic'] !== '') valueStyles += '\\033[23m';
-        localStorage['output-last-italic'] = ''
-      }
-
-
-      // For underline.
-      if (underline === 'true') {
-        if (localStorage['output-last-underline'] !== 'true') valueStyles += '\\033[4m';
-        localStorage['output-last-underline'] = 'true'
-      } else {
-        if (localStorage['output-last-underline'] !== '') valueStyles += '\\033[24m';
-        localStorage['output-last-underline'] = ''
-      }
-
-      return valueStyles;
-
-    }
-    
-    // Transform colour to SHELL code..
-    /// @type{function(Element, string): string} */
-    const toShellRGB = (item, type = '') => {
-
-      let colour = item.getAttribute(`data-${type}`)
-      
-      // Set a comparable string so we can verify later if there isn't any at all.
-      if (colour === null) colour = `clear-${type}`;
- 
-      // || Verify if this colour is the same as the last one used so that it doesn't repeat 2 > times.
-      if (colour === localStorage[`output-last-${type}-colour`]) return '';
- 
-      // Save to verify later if it is the same colour being used.
-      localStorage[`output-last-${type}-colour`] = colour
-
-      // The type of colour for the shell to apply to.
-      // 38 : foreground.
-      // 48 : background.
-      let codeRGBType = 38
-      if (type === 'bg') codeRGBType += 10;
-
-      // If there isn't anything to update...
-      if (colour === `clear-${type}`) return `\\033[${codeRGBType + 1}m`
- 
-      // If the colour is HEX
-      if (colour[0] === '#') {
-
-        // Transform the colour to RGB from HEX.
-        colour = (() => {
-          const result = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(colour);
-          return result ? [
-            parseInt(result[1], 16),
-            parseInt(result[2], 16),
-            parseInt(result[3], 16)
-          ] : null;
-        })();
-
-        // Return the complete value of that character + RGB colours.
-        return `\\033[${codeRGBType};2;${colour[0]};${colour[1]};${colour[2]}m`
-      }
-
-      // If it is one of the 4-bit (8-16 default SHELL colours).
-      else {
-
-        let codeColour = parseInt( g(colour).getAttribute('data-pallete') )
-
-        if (type === 'bg') codeColour += 10;
-
-        return `\\033[${codeColour}m`
-      }
+      this._output = g('output')
+      this._input  = g('block')
 
     }
 
-    // Loop throughout all children.
-    for (let i = 0; i < localStorage['blockWidth']; i++) {
+    update () {
 
-      for (let j = 0; j < localStorage['blockHeight']; j++) {
+      // Reset the output to nothing.
+      this._output.value = ''
 
-        const item = block.children[j].children[i]
+      // Transform the style effects to SHELL code..
+      /// @type{function(string boolean, string boolean, string boolean): string} */
+      const addStyles = (italic = '', bold = '', underline = '' ) => {
 
-        // Initialize text variable.
-        let itemValue = ''
+        let valueStyles = ''
 
-        itemValue += toShellRGB( item, 'fg' )
-        itemValue += toShellRGB( item, 'bg' )
-        itemValue += addStyles( item.getAttribute('data-bold'), item.getAttribute('data-italic'), item.getAttribute('data-underline') )
+        // For bold.
+        if (bold === 'true') {
+          if (localStorage['output-last-bold'] !== 'true') valueStyles += '\\033[1m';
+          localStorage['output-last-bold'] = 'true'
+        } else {
+          if (localStorage['output-last-bold'] !== '') valueStyles += '\\033[22m';
+          localStorage['output-last-bold'] = ''
+        }
 
-        // Text from the item.
-        output.value += itemValue + item.value;
+        // For italic.
+        if (italic === 'true') {
+          if (localStorage['output-last-italic'] !== 'true') valueStyles += '\\033[3m';
+          localStorage['output-last-italic'] = 'true'
+        } else {
+          if (localStorage['output-last-italic'] !== '') valueStyles += '\\033[23m';
+          localStorage['output-last-italic'] = ''
+        }
 
-        // Add line break at the end of the row
-        if (j === localStorage['blockHeight'] - 1) output.value += '\r\n'
+
+        // For underline.
+        if (underline === 'true') {
+          if (localStorage['output-last-underline'] !== 'true') valueStyles += '\\033[4m';
+          localStorage['output-last-underline'] = 'true'
+        } else {
+          if (localStorage['output-last-underline'] !== '') valueStyles += '\\033[24m';
+          localStorage['output-last-underline'] = ''
+        }
+
+        return valueStyles;
 
       }
 
+      // Transform colour to SHELL code..
+      /// @type{function(Element, string): string} */
+      const toShellRGB = (item, type = '') => {
+
+        let colour = item.getAttribute(`data-${type}`)
+
+        // Set a comparable string so we can verify later if there isn't any at all.
+        if (colour === null) colour = `clear-${type}`;
+
+        // || Verify if this colour is the same as the last one used so that it doesn't repeat 2 > times.
+        if (colour === localStorage[`output-last-${type}-colour`]) return '';
+
+        // Save to verify later if it is the same colour being used.
+        localStorage[`output-last-${type}-colour`] = colour
+
+        // The type of colour for the shell to apply to.
+        // 38 : foreground.
+        // 48 : background.
+        let codeRGBType = 38
+        if (type === 'bg') codeRGBType += 10;
+
+        // If there isn't anything to update...
+        if (colour === `clear-${type}`) return `\\033[${codeRGBType + 1}m`
+
+        // If the colour is HEX
+        if (colour[0] === '#') {
+
+          // Transform the colour to RGB from HEX.
+          colour = (() => {
+            const result = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(colour);
+            return result ? [
+              parseInt(result[1], 16),
+              parseInt(result[2], 16),
+              parseInt(result[3], 16)
+            ] : null;
+          })();
+
+          // Return the complete value of that character + RGB colours.
+          return `\\033[${codeRGBType};2;${colour[0]};${colour[1]};${colour[2]}m`
+        }
+
+        // If it is one of the 4-bit (8-16 default SHELL colours).
+        else {
+
+          let codeColour = parseInt( g(colour).getAttribute('data-pallete') )
+
+          if (type === 'bg') codeColour += 10;
+
+          return `\\033[${codeColour}m`
+        }
+
+      }
+
+      // Loop throughout all children.
+      for (let i = 0; i < localStorage['blockWidth']; i++) {
+
+        for (let j = 0; j < localStorage['blockHeight']; j++) {
+
+          const item = this._input.children[j].children[i]
+
+          // Initialize text variable.
+          let itemValue = ''
+
+          itemValue += toShellRGB( item, 'fg' )
+          itemValue += toShellRGB( item, 'bg' )
+          itemValue += addStyles( item.getAttribute('data-bold'), item.getAttribute('data-italic'), item.getAttribute('data-underline') )
+
+          // Text from the item.
+          this._output.value += itemValue + item.value;
+
+          // Add line break at the end of the row
+          if (j === localStorage['blockHeight'] - 1) this._output.value += '\r\n'
+
+        }
+
+      }
+
+      // Remove trailed spaces of the left to center the art.
+      let leftSpace = this._output.value.replace(new RegExp('(?!^ +)\\S.*', 'gm'), '').split('\n')
+      leftSpace.pop() // Remove useless extra line...
+      leftSpace = Math.min(...(leftSpace.map(el => el.length)))
+      this._output.value = this._output.value.replace(new RegExp(`^ {${leftSpace}}`, 'gm'), '')
+
+      // Remove trailed spaces of the right.
+      this._output.value = this._output.value.replace(new RegExp(' +$', 'gm'), '');
+
+      // Remove first empty lines and last empty lines.
+      this._output.value = this._output.value.replace(new RegExp('^\n*|\n+$', 'g'), '')
+
+      // Add credits if there is any without trailed spaces of the right.
+      const commentArt = n('commentArt')[0].value.replace(new RegExp(' +$', 'gm'), '')
+      if (commentArt) this._output.value = '# ' + commentArt.replace(new RegExp('^ +'), '') + '\n' + this._output.value
+
     }
-
-    // Remove trailed spaces of the left to center the art.
-    let leftSpace = output.value.replace(new RegExp('(?!^ +)\\S.*', 'gm'), '').split('\n')
-    leftSpace.pop() // Remove useless extra line...
-    leftSpace = Math.min(...(leftSpace.map(el => el.length)))
-    output.value = output.value.replace(new RegExp(`^ {${leftSpace}}`, 'gm'), '')
-
-    // Remove trailed spaces of the right.
-    output.value = output.value.replace(new RegExp(' +$', 'gm'), '');
-
-    // Remove first empty lines and last empty lines.
-    output.value = output.value.replace(new RegExp('^\n*|\n+$', 'g'), '')
-
-    // Add credits if there is any without trailed spaces of the right.
-    const commentArt = n('commentArt')[0].value.replace(new RegExp(' +$', 'gm'), '')
-    if (commentArt) output.value = '# ' + commentArt.replace(new RegExp('^ +'), '') + '\n' + output.value
 
   }
-
 
   // Remove previous elements that were selected
   const removeSelected = block => {
@@ -349,7 +541,7 @@ r( async () => { // IIFE to avoid globals
 
     selectedItems = []
 
-  }
+    }
 
   const parseSelection = () => {
 
@@ -380,123 +572,7 @@ r( async () => { // IIFE to avoid globals
     
   }
   
-  // Apply effect (bold, italic, underline) to an element.
-  const applyEffect = (block, column, row, types = [''], isEffects = ['']) => {
 
-    const item = block.children[column].children[row]
-
-    for (let i = 0; i < types.length; i++ ) {
-
-      // Apply such effect.
-      if (isEffects[i] === 'true') {
-
-        item.setAttribute( `data-${types[i]}`, isEffects[i] );
-        localStorage[`item-${types[i]}-${column}-${row}`] = true
-
-      // Do not apply the effect/remove it.
-      } else {
-
-        item.removeAttribute( `data-${types[i]}` )
-        localStorage[`item-${types[i]}-${column}-${row}`] = ''
-
-      }
-
-    }
-
-  }
-  
-  // Apply BG/FG colour to the item.
-  const applyColour = (block, column = 0, row = 0, types = [''], colours = ['']) => {
-
-    const item = block.children[column].children[row]
-
-    // So that repeating is not excessive...
-    const addColourStyle = (element, typeItem = '', colour = '') => {
-
-      if (colour) {
-
-        // Reset the colours set by # to normal one.
-        if (typeItem === 'bg') item.style.backgroundColor = '';
-        else item.style.color = '';
-
-        // If the colour is hash and not built-in from theme.
-        if (colour[0] === '#') {
-          if (typeItem === 'bg') item.style.backgroundColor = colour;
-          else item.style.color = colour;
-        }
-
-        element.setAttribute(`data-${typeItem}`, colour);
-
-      // Remove colour if there wasn't any selected.
-      } else {
-        if (typeItem === 'bg') item.style.backgroundColor = '';
-        else item.style.color = '';
-        element.removeAttribute(`data-${typeItem}`);
-      }
-
-      localStorage[`item-${typeItem}-${column}-${row}`] = colour
-
-    }
-
-    for (let i = 0; i < types.length; i++) {
-
-      if (!types[i]) {
-
-        if (localStorage['isBackground'] === 'true') addColourStyle(item, 'bg', colours[i]);
-        else                                         addColourStyle(item, 'fg', colours[i]);
-
-      } else addColourStyle(item, types[i], colours[i]);
-
-    }
-
-  }
-
-  const inputFocus = (column = 0, row = 0, text, type = undefined, colour = localStorage['data-colour'] ) => {
-
-    const block = g('block');
-    
-    // Apply the colour for the item and text.
-    const applyItemColour = (columnItem = 0, rowItem = 0) => {
-
-      const item = block.children[columnItem].children[rowItem]
-
-      // Apply text.
-      if (text !== undefined) {
-        item.value = text
-        localStorage[`item-${columnItem}-${rowItem}`] = text
-      }
- 
-      // Get item from document.
-      if (text !== 'Delete') {
-        applyColour(block, columnItem, rowItem, [type], [colour])
-        if (item.value !== ' ') {
-          applyEffect(block, columnItem, rowItem, ['underline', 'italic', 'bold'], [localStorage['isBold'], localStorage['isItalic'], localStorage['isUnderline']])
-        } else {
-          applyColour(block, columnItem, rowItem, ['fg'], [''])
-          applyEffect(block, columnItem, rowItem, ['underline', 'italic', 'bold'], ['', '', ''])
-        }
-      } else {
-        applyColour(block, columnItem, rowItem, ['fg', 'bg'], ['', ''])
-        applyEffect(block, columnItem, rowItem, ['underline', 'italic', 'bold'], ['', '', ''])
-        item.value = ' '
-        localStorage[`item-${columnItem}-${rowItem}`] = ' '
-        return
-      }
-
-    }
-
-    // Loop throughout the selected items to apply the colour.
-    if (c('selected').length > 0)
-      for (const itemInf of selectedItems)
-        applyItemColour(itemInf[0], itemInf[1], text);
-    // If just one, just apply one (the current within input).
-    else
-      applyItemColour(column, row);
-
-    // Pass the new text to the output block.
-    updateTerminalOutput()
-
-  }
 
   // Focus a number of selected elements.
   const selectFocus = (block, firstColumn = 0, firstRow = 0, secondColumn = 0, secondRow = 0, isShifted = false) => {
@@ -517,61 +593,6 @@ r( async () => { // IIFE to avoid globals
       }
 
     }
-
-  }
-
-  // To move a item position to another
-  const moveFocus = (direction = '', column = 0, row = 0, isShifted = false) => {
-
-    const block   = g('block')
-    let oldColumn = column,
-        oldRow    = row;
-
-    const isInfinite  = localStorage['infiniteMoving'],
-          blockHeight = localStorage['blockHeight'] - 1,
-          blockWidth  = localStorage['blockWidth'] - 1
-
-    switch (direction) {
-
-      case 'up':
-        if (row-- === 0 && isInfinite === 'true') row = blockHeight;
-        else if (row === -1) row = 0;
-        break;
-
-      case 'down':
-        if (row++ === blockHeight && isInfinite === 'true') row = 0;
-        else if (row === blockHeight + 1) row = blockHeight;
-        break;
-
-      case 'right':
-        if (column++ === blockWidth && isInfinite === 'true') column = 0;
-        else if (column === blockWidth + 1) column = blockWidth;
-        break;
-
-      case 'left':
-        if (column-- === 0 && isInfinite === 'true') column = blockWidth;
-        else if (column === -1) column = 0;
-        break;
-
-      case 'next':
-        if (column++ === blockWidth && isInfinite === 'true') {
-          column = 0;
-          row++;
-        }
-        else if (column === blockWidth + 1)  column = blockWidth;
-        if      (row    === blockHeight + 1) row    = 0;
-
-    }
-
-    if (isShifted) {
-      block.children[oldColumn].children[oldRow].classList.add('selected');
-      selectedItems.push([oldColumn, oldRow])
-      block.children[column].children[row].classList.add('selected');
-      selectedItems.push([column, row])
-    }
-    else removeSelected(block);
-
-    block.children[column].children[row].focus();
 
   }
 
@@ -608,7 +629,7 @@ r( async () => { // IIFE to avoid globals
     }
 
     // If there are current selected elements, then apply the new colour to it.
-    if (c('selected').length > 0) inputFocus(0, 0, undefined);
+    if (c('selected').length > 0) block.focus(0, 0, undefined);
 
   }
 
@@ -619,13 +640,14 @@ r( async () => { // IIFE to avoid globals
 
     // New block to input new art.
     const newBlock = (items = [], remove = false) => {
-      if (remove) g('block').remove();
 
+      if (remove) block.remove();
+
+      // Update values of localStorage
       items.forEach( item => localStorage[item] = n(item)[0].value)
 
-      const mainBlock = new Block(c('block')[0], localStorage['blockHeight'], localStorage['blockWidth'])
-            mainBlock.render()
-      updateTerminalOutput()
+      block = new Block( c('block')[0], localStorage['blockHeight'], localStorage['blockWidth'] )
+      block.render()
 
       if (!remove) g('block').children[0].children[0].focus();
 
@@ -676,16 +698,25 @@ r( async () => { // IIFE to avoid globals
     // Apply the first (or last used) theme to the whole page.
     const updateTheme = (theme, themeName = localStorage['lastTheme'], remove = false) => {
 
-      // If none was saved locally before.
-      if (themeName) theme = theme[themeName];
-      else           theme = theme['arcoiris']; // Default theme name.
+      // If none was saved locally before. CHROME engine needs the check in.
+      if (themeName && themeName !== 'undefined') theme = theme[themeName];
+      else {
+        theme     = theme['arcoiris']; // Default theme name.
+        themeName = 'arcoiris'
+      }
 
       // Update values on screen and remotelly.
       localStorage['lastTheme'] = themeName
       n('themesList')[0].value  = themeName
       
       // Remove the previous rule CSS for the previous theme.
-      if (remove) document.styleSheets[1].deleteRule(0);
+      if (remove) document.styleSheets[2].deleteRule(0);
+      else {
+
+        // Append <style> element to <head>
+        document.head.appendChild(document.createElement('style'));
+
+      }
 
       // Add colours RGB parameters to pallete picker.
       Object.keys(coloursNames).forEach( item => {
@@ -693,21 +724,21 @@ r( async () => { // IIFE to avoid globals
         coloursNames[item] = theme[item]
       });
 
-      document.styleSheets[1].insertRule(`
+      document.styleSheets[2].insertRule(`
 
         :root {
 
-          --black: ${theme.black}; --black-bright: ${theme.blackBright};
-          --red: ${theme.red}; --red-bright: ${theme.redBright};
-          --green: ${theme.green}; --green-bright: ${theme.greenBright};
+          --black:  ${theme.black};  --black-bright:  ${theme.blackBright};
+          --red:    ${theme.red};    --red-bright:    ${theme.redBright};
+          --green:  ${theme.green};  --green-bright:  ${theme.greenBright};
           --yellow: ${theme.yellow}; --yellow-bright: ${theme.yellowBright};
-          --blue: ${theme.blue}; --blue-bright: ${theme.blueBright};
+          --blue:   ${theme.blue};   --blue-bright:   ${theme.blueBright};
           --purple: ${theme.purple}; --purple-bright: ${theme.purpleBright};
-          --cyan: ${theme.cyan}; --cyan-bright: ${theme.cyanBright};
-          --white: ${theme.white}; --white-bright: ${theme.whiteBright};
+          --cyan:   ${theme.cyan};   --cyan-bright:   ${theme.cyanBright};
+          --white:  ${theme.white};  --white-bright:  ${theme.whiteBright};
 
           --background-path: url('../data/themes/${theme.Image.Path}');
-          --font-name: ${theme.FontName};
+          --font-name:       ${theme.FontName};
 
           --background: ${theme.background}; --foreground: ${theme.foreground};
 
@@ -767,7 +798,7 @@ r( async () => { // IIFE to avoid globals
           let text = g('output').value.replace(new RegExp(/\\033\[([\d]+;)*[\d]+m/, 'g'), '').split('\n')
           if (text[0][0] === "#") text.shift(); // If there is the comment/credits at the first line, remove it.
           text = (
-              e.explicitOriginalTarget.value.replace(new RegExp(' +$', 'gm'), '')
+              e.target.value.replace(new RegExp(' +$', 'gm'), '')
             + ' ' + text.length // Rows of the ASCII art
             + ' ' + Math.max(...(text.map(el => el.length))) ); // Max columns of the ASCII art
 
@@ -794,14 +825,14 @@ r( async () => { // IIFE to avoid globals
 
     // Update when the credits changes to the output.
     [ 'commentArt' ].forEach( item => {
-      n(item)[0].addEventListener( 'keyup', () => updateTerminalOutput() )
+      n(item)[0].addEventListener( 'keyup', () => output.update() )
     });
 
     // Add all themes for the selection.
     Object.keys(json.themes).forEach( item => {
       n('themesList')[0].insertAdjacentHTML( 'beforeend', `<option value="${item}">${item}</option>` )
     });
-    n('themesList')[0].addEventListener( 'change', e =>  updateTheme(json.themes, e.explicitOriginalTarget.value, true) );
+    n('themesList')[0].addEventListener( 'change', e =>  updateTheme(json.themes, e.target.value, true) );
 
 
     // Add events for colours to pick.
@@ -813,6 +844,7 @@ r( async () => { // IIFE to avoid globals
         selectColour(item, undefined, true)
       });
     }
+
     // Apply theme to the page.
     updateTheme(json.themes);
 
@@ -824,6 +856,9 @@ r( async () => { // IIFE to avoid globals
 
     // Our container for the blocks and columns.
     newBlock(formatKeys)
+
+    output = new Output()
+    output.update()
 
   })
 

@@ -1,4 +1,10 @@
 /*
+ * Page's font
+ */
+
+@import url( 'https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;700&display=swap' );
+
+/*
  * Fira Code (NERD's patched)
  */
 
@@ -21,3 +27,5 @@
     url("fonts/Fira Code/Fira Code Bold Nerd Font Complete Mono.ttf") format("truetype");
 
 }
+
+
