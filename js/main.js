@@ -1,7 +1,8 @@
 import { r, g, c, n } from "./xeact.js";
 
 /*
- * Mouse events initialize
+ * Mouse events Initialize
+  * @method 
  */
 
 let button_down = 0;
@@ -10,14 +11,14 @@ let button_down = 0;
  * Initialize localStorage
  * */
 
-var block;
-var output;
-var selectedItems = []
-var coloursNames = {
-  'black': '', 'blackBright': '', 'red': '', 'redBright': '', 'green': '', 'greenBright': '',
-  'yellow': '', 'yellowBright': '', 'blue': '', 'blueBright': '', 'purple': '', 'purpleBright': '',
-  'cyan': '', 'cyanBright': '', 'white': '', 'whiteBright': ''
-}
+var block,
+    output,
+    selected_items = [],
+    coloursNames = {
+      'black' : '', 'blackBright' : '', 'red'  : '', 'redBright'  : '', 'green' : '', 'greenBright' : '',
+      'yellow': '', 'yellowBright': '', 'blue' : '', 'blueBright' : '', 'purple': '', 'purpleBright': '',
+      'cyan'  : '', 'cyanBright'  : '', 'white': '', 'whiteBright': ''
+    }
 
 
 /*
@@ -34,26 +35,48 @@ r( async () => { // IIFE to avoid globals
    */
   class Block {
 
-    constructor (container, columns = 1, rows = 1) {
+    constructor (rows = '1', columns = '1') {
 
-      this._columns    = parseInt(columns)
-      this._rows       = parseInt(rows)
-      this._container  = this.create(container)
-
-    }
-
-    create (container) {
-
-      container.insertAdjacentHTML( 'beforeend', this.elementHTML('block') )
-      return g('block')
+      this._columns    = Number.parseInt(columns)
+      this._rows       = Number.parseInt(rows)
+      this._parent     = c('block')[0]
+      this._container  = this.create(false)
+      this._names      = [ 'blockHeight', 'blockWidth' ]
 
     }
 
-    remove () {
+    create (remove = false) {
 
-      this._container.remove()
+      // New block to input new art.
+      if (remove) {
+
+        // Update values of localStorage
+        this._names.forEach( name => localStorage[name] = n(name)[0].value )
+
+        this._rows    = Number.parseInt( localStorage[this._names[0]] )
+        this._columns = Number.parseInt( localStorage[this._names[1]] )
+
+        this.remove();
+
+        this._parent.insertAdjacentHTML( 'beforeend', this.elementHTML('block') )
+
+        this._container = g('block')
+
+      } else {
+
+        this._parent.insertAdjacentHTML( 'beforeend', this.elementHTML('block') )
+
+        return g('block')
+
+      }
 
     }
+
+    columns () { return this._columns }
+
+    rows    () { return this._rows    }
+
+    remove () { this._container.remove() }
 
     elementHTML (type = '', column = 0, row = 0) { 
 
@@ -61,8 +84,10 @@ r( async () => { // IIFE to avoid globals
 
         case 'row':
           return `<input type="text" maxlength="1" data-column="${column}" data-row="${row}" value=" " class="column-item">`
+
         case 'column':
           return `<div data-column="${column}" class="column"></div>`
+
         case 'block':
           return `<!-- Our big block -->\n<div id="block"></div>`
 
@@ -112,10 +137,10 @@ r( async () => { // IIFE to avoid globals
       if (is_shifted) {
 
         this.item( oldColumn, oldRow ).classList.add('selected')
-        selectedItems.push( [oldColumn, oldRow] )
+        selected_items.push( [oldColumn, oldRow] )
 
         this.item( column, row).classList.add('selected');
-        selectedItems.push( [column, row] )
+        selected_items.push( [column, row] )
 
       }
       else removeSelected(this._container);
@@ -196,9 +221,8 @@ r( async () => { // IIFE to avoid globals
 
     }
 
-   
     focus (column = 0, row = 0, text, type = undefined, colour = localStorage['data-colour'] ) {
-      
+
       // Apply the colour for the item and text.
       const applyItemColour = (columnItem = 0, rowItem = 0) => {
 
@@ -233,7 +257,7 @@ r( async () => { // IIFE to avoid globals
 
       // Loop throughout the selected items to apply the colour.
       if (c('selected').length > 0)
-        for (const itemInf of selectedItems)
+        for (const itemInf of selected_items)
           applyItemColour(itemInf[0], itemInf[1], text);
       // If just one, just apply one (the current within input).
       else
@@ -251,7 +275,7 @@ r( async () => { // IIFE to avoid globals
 
     }
 
-    render () {
+    render (focus = false) {
 
       const runText = (column, row, letter) => {
         // If it's only one letter
@@ -261,124 +285,129 @@ r( async () => { // IIFE to avoid globals
         }
       }
 
-
       for (let i = 0; i < this._columns; i++) {
 
         // Add column and select.
         this._container.insertAdjacentHTML( 'beforeend', this.elementHTML('column', i) )
         const column = c('column')[i]
 
-        for (let j = 0; j < this._rows; j++) {
+        if (column) {
 
-          // Add item in column and select.
-          column.insertAdjacentHTML( 'beforeend', this.elementHTML('row', i, j) )
-          const item = c('column')[i].children[j]
+          for (let j = 0; j < this._rows; j++) {
 
-          // Set old value from localStorage for this item.
-          if (localStorage[`item-${i}-${j}`])           item.value = localStorage[`item-${i}-${j}`];
-          if (localStorage[`item-fg-${i}-${j}`])        block.colour(i, j, ['fg'], [localStorage[`item-fg-${i}-${j}`]]);
-          if (localStorage[`item-bg-${i}-${j}`])        block.colour(i, j, ['bg'], [localStorage[`item-bg-${i}-${j}`]]);
-          if (localStorage[`item-bold-${i}-${j}`])      block.effect(i, j, ['bold'], [localStorage[`item-bold-${i}-${j}`]]);
-          if (localStorage[`item-underline-${i}-${j}`]) block.effect(i, j, ['underline'], [localStorage[`item-underline-${i}-${j}`]]);
-          if (localStorage[`item-italic-${i}-${j}`])    block.effect(i, j, ['italic'], [localStorage[`item-italic-${i}-${j}`]]);
+            // Add item in column and select.
+            column.insertAdjacentHTML( 'beforeend', this.elementHTML('row', i, j) )
+            const item = c('column')[i].children[j]
 
-          // Events for items
-          item.addEventListener('keydown', e => {
+            // Set old value from localStorage for this item.
+            if (localStorage[`item-${i}-${j}`])           item.value = localStorage[`item-${i}-${j}`];
+            if (localStorage[`item-fg-${i}-${j}`])        block.colour(i, j, ['fg'], [localStorage[`item-fg-${i}-${j}`]]);
+            if (localStorage[`item-bg-${i}-${j}`])        block.colour(i, j, ['bg'], [localStorage[`item-bg-${i}-${j}`]]);
+            if (localStorage[`item-bold-${i}-${j}`])      block.effect(i, j, ['bold'], [localStorage[`item-bold-${i}-${j}`]]);
+            if (localStorage[`item-underline-${i}-${j}`]) block.effect(i, j, ['underline'], [localStorage[`item-underline-${i}-${j}`]]);
+            if (localStorage[`item-italic-${i}-${j}`])    block.effect(i, j, ['italic'], [localStorage[`item-italic-${i}-${j}`]]);
 
-            switch (e.code) {
-              // Apply pallete colours.
-              case 'Digit1':
-                if   (!e.shiftKey) selectColour('black', e.ctrlKey)
-                else               runText(i, j, e.key)
-                break;
-              case 'Digit2':
-                if   (!e.shiftKey) selectColour('red', e.ctrlKey)
-                else               runText(i, j, e.key)
-                break;
-              case 'Digit3':
-                if   (!e.shiftKey) selectColour('green', e.ctrlKey)
-                else               runText(i, j, e.key)
-                break;
-              case 'Digit4':
-                if   (!e.shiftKey) selectColour('yellow', e.ctrlKey)
-                else               runText(i, j, e.key)
-                break;
-              case 'Digit5':
-                if   (!e.shiftKey) selectColour('blue', e.ctrlKey)
-                else               runText(i, j, e.key)
-                break;
-              case 'Digit6':
-                if   (!e.shiftKey) selectColour('purple', e.ctrlKey)
-                else               runText(i, j, e.key)
-                break;
-              case 'Digit7':
-                if  (!e.shiftKey) selectColour('cyan', e.ctrlKey)
-                else              runText(i, j, e.key)
-                break;
-              case 'Digit8':
-                if   (!e.shiftKey) selectColour('white', e.ctrlKey)
-                else               runText(i, j, e.key)
-                break;
-              // Main keys.
-              case 'ArrowUp':
-                this.move('up', i, j, e.shiftKey)
-                break;
-              case 'ArrowDown':
-                this.move('down', i, j, e.shiftKey)
-                break;
-              case 'ArrowRight':
-                this.move('right', i, j, e.shiftKey)
-                break;
-              case 'ArrowLeft':
-                this.move('left', i, j, e.shiftKey)
-                break;
-              case 'Backspace':
-              case 'Space':
-                this.focus(i, j, ' ', 'fg', '')
-                break;
-              // Update colours.
-              case 'Enter':
-                this.focus(i, j, undefined)
-                break;
-              // Delete all the information about the item.
-              case 'Delete':
-                this.focus(i, j, e.code)
-                break;
-              default:
-                runText(i, j, e.key)
-            }
+            // Events for items
+            item.addEventListener('keydown', e => {
 
-          });
+              switch (e.code) {
+                // Apply pallete colours.
+                case 'Digit1':
+                  if   (!e.shiftKey) selectColour('black', e.ctrlKey)
+                  else               runText(i, j, e.key)
+                  break;
+                case 'Digit2':
+                  if   (!e.shiftKey) selectColour('red', e.ctrlKey)
+                  else               runText(i, j, e.key)
+                  break;
+                case 'Digit3':
+                  if   (!e.shiftKey) selectColour('green', e.ctrlKey)
+                  else               runText(i, j, e.key)
+                  break;
+                case 'Digit4':
+                  if   (!e.shiftKey) selectColour('yellow', e.ctrlKey)
+                  else               runText(i, j, e.key)
+                  break;
+                case 'Digit5':
+                  if   (!e.shiftKey) selectColour('blue', e.ctrlKey)
+                  else               runText(i, j, e.key)
+                  break;
+                case 'Digit6':
+                  if   (!e.shiftKey) selectColour('purple', e.ctrlKey)
+                  else               runText(i, j, e.key)
+                  break;
+                case 'Digit7':
+                  if  (!e.shiftKey) selectColour('cyan', e.ctrlKey)
+                  else              runText(i, j, e.key)
+                  break;
+                case 'Digit8':
+                  if   (!e.shiftKey) selectColour('white', e.ctrlKey)
+                  else               runText(i, j, e.key)
+                  break;
+                // Main keys.
+                case 'ArrowUp':
+                  this.move('up', i, j, e.shiftKey)
+                  break;
+                case 'ArrowDown':
+                  this.move('down', i, j, e.shiftKey)
+                  break;
+                case 'ArrowRight':
+                  this.move('right', i, j, e.shiftKey)
+                  break;
+                case 'ArrowLeft':
+                  this.move('left', i, j, e.shiftKey)
+                  break;
+                case 'Backspace':
+                case 'Space':
+                  this.focus(i, j, ' ', 'fg', '')
+                  break;
+                // Update colours.
+                case 'Enter':
+                  this.focus(i, j, undefined)
+                  break;
+                // Delete all the information about the item.
+                case 'Delete':
+                  this.focus(i, j, e.code)
+                  break;
+                default:
+                  runText(i, j, e.key)
+              }
 
-          item.addEventListener('mouseup', () => button_down = 0)
-          item.addEventListener('mousedown', e => {
+            });
 
-            e.preventDefault()
-            button_down = 1
-            e.target.focus()
-            if (!e.shiftKey) removeSelected(this._container);
-            localStorage['firstColumn'] = i
-            localStorage['firstRow']    = j
+            item.addEventListener('mouseup', () => button_down = 0)
+            item.addEventListener('mousedown', e => {
 
-          });
+              e.preventDefault()
+              button_down = 1
+              e.target.focus()
+              if (!e.shiftKey) removeSelected(this._container);
+              localStorage['firstColumn'] = i
+              localStorage['firstRow']    = j
 
-          // TODO: Middle click to toggle colour.
+            });
 
-          item.addEventListener('mouseenter', e => {
+            // TODO: Middle click to toggle colour.
 
-            if (button_down)
-              selectFocus( this._container,
-                localStorage['firstColumn'],
-                localStorage['firstRow'],
-                localStorage['secondColumn'] = e.target.getAttribute('data-column'),
-                localStorage['secondRow']    = e.target.getAttribute('data-row'),
-                e.shiftKey);
+            item.addEventListener('mouseenter', e => {
 
-          });
+              if (button_down)
+                selectFocus( this._container,
+                  localStorage['firstColumn'],
+                  localStorage['firstRow'],
+                  localStorage['secondColumn'] = e.target.getAttribute('data-column'),
+                  localStorage['secondRow']    = e.target.getAttribute('data-row'),
+                  e.shiftKey);
+
+            });
+
+          }
 
         }
 
       }
+
+      if (focus) g('block').children[0].children[0].focus();
 
     }
 
@@ -390,6 +419,83 @@ r( async () => { // IIFE to avoid globals
 
       this._output = g('output')
       this._input  = g('block')
+
+    }
+
+    // Just add the event listener to it so we can send the decode function when its state changes.
+    init () {
+
+      this._output.addEventListener( 'change', () => this.decode() )
+
+    }
+
+    // Take from ouput to set into the input everytime the output changes.
+    // e.j: a character changes.
+    decode () {
+
+      let characters = []
+
+      const shell_code = /\\033\[([\d]+;)*[\d]+m/;
+      let   text = this._output.value
+      let  match;
+
+      // Loop to get our characters from output into the array characters.
+      for (let i = 0; i < text.length; i++) {
+
+        // Safest way I imagined to verify if it is a shell code colour
+        match = shell_code.exec(text);
+
+        // Only push when it matches the index so that we don't add it before it should be added.
+        if (match && match.index === i) {
+
+          // Push our shell code.
+          characters.push(match[0])
+          // Push our character after the shell code.
+          if (text[i] !== "\\") characters.push(text[i])
+          // Replace the character for dead character so that we can keep looping it.
+          text = text.replace(shell_code, 'a')
+
+        } else {
+
+          // Push our character to the text.
+          characters.push(text[i])
+
+        }
+
+      }
+
+      // We don't need them anymore.
+      match = null //; text = null
+
+      // Make it an array so we can loop it later.
+      const text_array = g('output').value.replace(new RegExp(/\\033\[([\d]+;)*[\d]+m/, 'g'), '').split('\n')
+      if (text[0][0] === "#") text_array.shift(); // If there is any comment/credits at the first line, remove it.
+
+      // Set the block rows and columns.
+      // +1 at the end to make the block wider and larger by 1.
+      n('blockWidth') [0].value = ( (text.match(/\n/g) || '').length + 1 )           + 1
+      n('blockHeight')[0].value = ( Math.max(...(text_array.map(el => el.length))) ) + 1
+      block.create(true)
+      block.render()
+
+      // Loop through the characters list to set out to the output.
+      let i = 0, j = 0; // i = column; j = row
+      for (let character of characters) {
+
+        // If there's a break line, let's jump to the next row.
+        if (character === "\n") {
+
+          i = 0
+          j++
+          continue
+
+        }
+
+        console.log(`column: ${i++} - row: ${j} ${character}`)
+
+
+      }
+      // console.log(characters)
 
     }
 
@@ -407,29 +513,29 @@ r( async () => { // IIFE to avoid globals
         // For bold.
         if (bold === 'true') {
           if (localStorage['output-last-bold'] !== 'true') valueStyles += '\\033[1m';
-          localStorage['output-last-bold'] = 'true'
+              localStorage['output-last-bold'] = 'true'
         } else {
           if (localStorage['output-last-bold'] !== '') valueStyles += '\\033[22m';
-          localStorage['output-last-bold'] = ''
+              localStorage['output-last-bold'] = ''
         }
 
         // For italic.
         if (italic === 'true') {
           if (localStorage['output-last-italic'] !== 'true') valueStyles += '\\033[3m';
-          localStorage['output-last-italic'] = 'true'
+              localStorage['output-last-italic'] = 'true'
         } else {
           if (localStorage['output-last-italic'] !== '') valueStyles += '\\033[23m';
-          localStorage['output-last-italic'] = ''
+              localStorage['output-last-italic'] = ''
         }
 
 
         // For underline.
         if (underline === 'true') {
           if (localStorage['output-last-underline'] !== 'true') valueStyles += '\\033[4m';
-          localStorage['output-last-underline'] = 'true'
+              localStorage['output-last-underline'] = 'true'
         } else {
           if (localStorage['output-last-underline'] !== '') valueStyles += '\\033[24m';
-          localStorage['output-last-underline'] = ''
+              localStorage['output-last-underline'] = ''
         }
 
         return valueStyles;
@@ -490,24 +596,34 @@ r( async () => { // IIFE to avoid globals
       }
 
       // Loop throughout all children.
-      for (let i = 0; i < localStorage['blockWidth']; i++) {
+      for (let i = 0; i < block.columns(); i++) {
 
-        for (let j = 0; j < localStorage['blockHeight']; j++) {
+        for (let j = 0; j < block.rows(); j++) {
 
-          const item = this._input.children[j].children[i]
+          let item = this._input.children[j]
 
-          // Initialize text variable.
-          let itemValue = ''
+          if (item) {
 
-          itemValue += toShellRGB( item, 'fg' )
-          itemValue += toShellRGB( item, 'bg' )
-          itemValue += addStyles( item.getAttribute('data-bold'), item.getAttribute('data-italic'), item.getAttribute('data-underline') )
+            item = item.children[i]
 
-          // Text from the item.
-          this._output.value += itemValue + item.value;
+            if (item) {
 
-          // Add line break at the end of the row
-          if (j === localStorage['blockHeight'] - 1) this._output.value += '\r\n'
+              // Initialize text variable.
+              let itemValue = ''
+
+              itemValue += toShellRGB( item, 'fg' )
+              itemValue += toShellRGB( item, 'bg' )
+              itemValue += addStyles( item.getAttribute('data-bold'), item.getAttribute('data-italic'), item.getAttribute('data-underline') )
+
+              // Text from the item.
+              this._output.value += itemValue + item.value;
+
+              // Add line break at the end of the row
+              if (j === localStorage['blockHeight'] - 1) this._output.value += '\r\n'
+
+            }
+
+          }
 
         }
 
@@ -536,10 +652,10 @@ r( async () => { // IIFE to avoid globals
   // Remove previous elements that were selected
   const removeSelected = block => {
 
-    for (const item of selectedItems)
+    for (const item of selected_items)
       block.children[item[0]].children[item[1]].classList.remove('selected');
 
-    selectedItems = []
+    selected_items = []
 
     }
 
@@ -588,7 +704,7 @@ r( async () => { // IIFE to avoid globals
       for (let j = firstRow; j <= secondRow; j++) {
 
         block.children[i].children[j].classList.add('selected')
-        selectedItems.push([i, j])
+        selected_items.push([i, j])
 
       }
 
@@ -637,21 +753,6 @@ r( async () => { // IIFE to avoid globals
   fetch('./data/config.json')
   .then(response => response.json())
   .then(json => {
-
-    // New block to input new art.
-    const newBlock = (items = [], remove = false) => {
-
-      if (remove) block.remove();
-
-      // Update values of localStorage
-      items.forEach( item => localStorage[item] = n(item)[0].value)
-
-      block = new Block( c('block')[0], localStorage['blockHeight'], localStorage['blockWidth'] )
-      block.render()
-
-      if (!remove) g('block').children[0].children[0].focus();
-
-    }
 
     // Update the styles of items, like font-size and width.
     const updateItemStyle = (items = [], remove = false) => {
@@ -775,7 +876,12 @@ r( async () => { // IIFE to avoid globals
     const formatKeys = [ 'blockHeight', 'blockWidth' ]
     formatKeys.forEach( item => {
       n(item)[0].addEventListener( 'keydown', e => {
-        if (e.key === 'Enter') newBlock(formatKeys, true)
+        if (e.key === 'Enter') {
+
+          block.create(true)
+          block.render()
+
+        }
       })
     });
 
@@ -855,9 +961,11 @@ r( async () => { // IIFE to avoid globals
     selectColour(undefined)
 
     // Our container for the blocks and columns.
-    newBlock(formatKeys)
+    block = new Block(localStorage['blockWidth'], localStorage['blockHeight'])
+    block.render(true)
 
     output = new Output()
+    output.init()
     output.update()
 
   })
