@@ -53,8 +53,8 @@ r( async () => { // IIFE to avoid globals
         // Update values of localStorage
         this._names.forEach( name => localStorage[name] = n(name)[0].value )
 
-        this._rows    = Number.parseInt( localStorage[this._names[0]] )
-        this._columns = Number.parseInt( localStorage[this._names[1]] )
+        this._rows    = Number.parseInt( localStorage[this._names[1]] )
+        this._columns = Number.parseInt( localStorage[this._names[0]] )
 
         this.remove();
 
@@ -425,7 +425,7 @@ r( async () => { // IIFE to avoid globals
     // Just add the event listener to it so we can send the decode function when its state changes.
     init () {
 
-      this._output.addEventListener( 'change', () => this.decode() )
+      this._output.addEventListener( 'keyup', () => this.decode() )
 
     }
 
@@ -438,6 +438,9 @@ r( async () => { // IIFE to avoid globals
       const shell_code = /\\033\[([\d]+;)*[\d]+m/;
       let   text = this._output.value
       let  match;
+
+      // If the first line contains a comment.
+      if (text[0] === '#') text = text.substring(text.indexOf("\n") + 1);
 
       // Loop to get our characters from output into the array characters.
       for (let i = 0; i < text.length; i++) {
@@ -464,19 +467,18 @@ r( async () => { // IIFE to avoid globals
 
       }
 
-      // We don't need them anymore.
-      match = null //; text = null
-
       // Make it an array so we can loop it later.
-      const text_array = g('output').value.replace(new RegExp(/\\033\[([\d]+;)*[\d]+m/, 'g'), '').split('\n')
-      if (text[0][0] === "#") text_array.shift(); // If there is any comment/credits at the first line, remove it.
+      const text_array = g('output').value.replace(new RegExp(/(\\033\[([\d]+;)*[\d]+m)|(^#.+\n)/, 'g'), '').split('\n')
 
       // Set the block rows and columns.
       // +1 at the end to make the block wider and larger by 1.
-      n('blockWidth') [0].value = ( (text.match(/\n/g) || '').length + 1 )           + 1
-      n('blockHeight')[0].value = ( Math.max(...(text_array.map(el => el.length))) ) + 1
-      block.create(true)
-      block.render()
+      {
+        n('blockWidth') [0].value = ( text.match(/\n/g) || '' ).length + 1
+        n('blockHeight')[0].value = Math.max(...(text_array.map(el => el.length)))
+        block.create(true)
+        block.render()
+//        console.log( block.columns(), block.rows() )
+      }
 
       // Loop through the characters list to set out to the output.
       let i = 0, j = 0; // i = column; j = row
@@ -596,9 +598,9 @@ r( async () => { // IIFE to avoid globals
       }
 
       // Loop throughout all children.
-      for (let i = 0; i < block.columns(); i++) {
+      for (let i = 0; i < block.rows(); i++) {
 
-        for (let j = 0; j < block.rows(); j++) {
+        for (let j = 0; j < block.columns(); j++) {
 
           let item = this._input.children[j]
 
