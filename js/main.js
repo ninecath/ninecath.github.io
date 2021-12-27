@@ -174,7 +174,6 @@ r( async () => { // IIFE to avoid globals
 
     }
 
-    
     // Apply BG/FG colour to the item.
     colour (column = 0, row = 0, types = [''], colours = [''] ) {
 
@@ -280,7 +279,7 @@ r( async () => { // IIFE to avoid globals
       const runText = (column, row, letter) => {
         // If it's only one letter
         if (letter.length === 1) {
-          block.focus(column, row, letter)
+          this.focus(column, row, letter)
           if (localStorage['moveAfterInput'] === 'true') this.move('next', column, row);
         }
       }
@@ -418,7 +417,6 @@ r( async () => { // IIFE to avoid globals
     constructor () {
 
       this._output = g('output')
-      this._input  = g('block')
 
     }
 
@@ -475,8 +473,8 @@ r( async () => { // IIFE to avoid globals
       {
         n('blockWidth') [0].value = ( text.match(/\n/g) || '' ).length + 1
         n('blockHeight')[0].value = Math.max(...(text_array.map(el => el.length)))
-        block.create(true)
-        block.render()
+//        block.create(true)
+//        block.render()
 //        console.log( block.columns(), block.rows() )
       }
 
@@ -602,7 +600,7 @@ r( async () => { // IIFE to avoid globals
 
         for (let j = 0; j < block.columns(); j++) {
 
-          let item = this._input.children[j]
+          let item = g('block').children[j]
 
           if (item) {
 
