@@ -468,14 +468,24 @@ r( async () => { // IIFE to avoid globals
       // Make it an array so we can loop it later.
       const text_array = g('output').value.replace(new RegExp(/(\\033\[([\d]+;)*[\d]+m)|(^#.+\n)/, 'g'), '').split('\n')
 
-      // Set the block rows and columns.
-      // +1 at the end to make the block wider and larger by 1.
-      {
-        n('blockWidth') [0].value = ( text.match(/\n/g) || '' ).length + 1
-        n('blockHeight')[0].value = Math.max(...(text_array.map(el => el.length)))
-//        block.create(true)
-//        block.render()
-//        console.log( block.columns(), block.rows() )
+      // Set the block values for rows and columns only if the current is lower than what is necessary.
+      let block_current_height = n('blockHeight')[0].value
+      let block_current_width  = n('blockWidth') [0].value
+      let necessary_height     = Math.max(...(text_array.map(el => el.length)))
+      let necessary_width      = ( text.match(/\n/g) || '' ).length + 1
+
+      if (block_current_width < necessary_width) {
+
+        n('blockWidth') [0].value = necessary_width;
+        // LocalStorage
+
+      }
+
+      if (block_current_height < necessary_height) {
+
+        n('blockHeight')[0].value = necessary_height;
+        // LocalStorage
+
       }
 
       // Loop through the characters list to set out to the output.
@@ -491,8 +501,9 @@ r( async () => { // IIFE to avoid globals
 
         }
 
-        console.log(`column: ${i++} - row: ${j} ${character}`)
-
+        // We set the block characters from left to right, top to down.
+        // TODO: Decode this.
+        console.log(`row: ${j} - column: ${i++} - ${character}`)
 
       }
       // console.log(characters)
