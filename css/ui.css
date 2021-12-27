@@ -256,7 +256,11 @@ body {
       border: 1px solid transparent;
       color: var(--foreground);
       caret-color: transparent;
+      text-indent: 0;
+      text-align: center;
       font-family: var(--font-name);
+      padding: 0;
+      overflow: visible;
 
       } #block .column-item::selection {
 
